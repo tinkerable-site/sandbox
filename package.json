@@ -51,8 +51,7 @@
     "settle-promise": "^1.0.0",
     "solid-refresh": "^0.4.0",
     "strip-json-comments": "^4.0.0",
-    "url-join": "^5.0.0",
-    "vfile": "neumark/vfile"
+    "url-join": "^5.0.0"
   },
   "devDependencies": {
     "@octokit/rest": "^18.12.0",
@@ -88,9 +87,6 @@
     "typescript": "5.8.3",
     "url": "^0.11.0",
     "util": "^0.12.4"
-  },
-  "overrides": {
-    "vfile": "neumark/vfile"
   },
   "resolutions": {
     "@babel/preset-env": "7.27.0",
