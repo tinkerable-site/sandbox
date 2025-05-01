@@ -218,4 +218,5 @@ class SandpackInstance {
   }
 }
 
-new SandpackInstance();
+// @ts-ignore
+window['sandpack'] = new SandpackInstance();

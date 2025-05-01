@@ -1,9 +1,3 @@
 {
-  "/api": {
-    "target": "https://codesandbox.io/api",
-    "changeOrigin": true,
-    "pathRewrite": {
-      "^/api": ""
-    }
-  }
+
 }

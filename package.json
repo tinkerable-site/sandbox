@@ -32,25 +32,27 @@
   },
   "browserslist": "> 2.5%, not ie 11, not dead, not op_mini all",
   "dependencies": {
-    "@babel/plugin-proposal-explicit-resource-management": "7.24.1",
-    "@babel/standalone": "7.24.1",
+    "@babel/plugin-proposal-explicit-resource-management": "7.25.9",
+    "@babel/standalone": "7.27.0",
+    "@mdx-js/mdx": "^3.1.0",
     "@msgpack/msgpack": "^2.8.0",
-    "@swc/helpers": "^0.3.8",
-    "@types/babel__standalone": "7.1.4",
+    "@swc/helpers": "0.5.17",
+    "@types/babel__standalone": "7.1.9",
     "babel-preset-solid": "^1.3.13",
-    "console-feed": "3.3.0",
+    "console-feed": "3.8.0",
     "gensync": "^1.0.0-beta.2",
     "micromatch": "^4.0.5",
     "p-queue": "^6.6.2",
     "postcss": "^8.4.14",
     "postcss-url": "^10.1.3",
     "postcss-value-parser": "^4.2.0",
-    "react": "^18.0.0",
-    "react-refresh": "^0.12.0",
+    "react": "19.1.0",
+    "react-refresh": "0.17.0",
     "settle-promise": "^1.0.0",
     "solid-refresh": "^0.4.0",
     "strip-json-comments": "^4.0.0",
-    "url-join": "^5.0.0"
+    "url-join": "^5.0.0",
+    "vfile": "neumark/vfile"
   },
   "devDependencies": {
     "@octokit/rest": "^18.12.0",
@@ -76,19 +78,26 @@
     "jest-extended": "^2.0.0",
     "node-fetch": "^3.2.4",
     "os-browserify": "^0.3.0",
-    "parcel": "^2.12.0",
+    "parcel": "2.14.4",
     "path-browserify": "^1.0.1",
     "prettier": "^2.6.2",
     "prettier-plugin-import-sort": "^0.0.7",
     "pretty-quick": "^3.1.3",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
-    "typescript": "4.6.3",
+    "typescript": "5.8.3",
     "url": "^0.11.0",
     "util": "^0.12.4"
   },
+  "overrides": {
+    "vfile": "neumark/vfile"
+  },
   "resolutions": {
-    "@babel/preset-env": "7.18.2",
-    "@swc/core": "1.4.8"
+    "@babel/preset-env": "7.27.0",
+    "@swc/core": "1.11.24",
+    "react": "19.1.0"
+  },
+  "@parcel/resolver-default": {
+    "packageExports": true
   }
 }

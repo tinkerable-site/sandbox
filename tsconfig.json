@@ -9,7 +9,7 @@
     "allowJs": true,
     "lib": ["es6", "dom"],
     "rootDir": "src",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "downlevelIteration": true,
     "strictNullChecks": true
   },

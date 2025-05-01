@@ -18,6 +18,7 @@ app.register(fastifyStatic, {
 
 // Fallback to index.html, it's a SPA
 app.setNotFoundHandler((req, reply) => {
+  console.log("Sending index.html instead of requested file", req.path)
   return reply.sendFile("index.html", { cacheControl: false });
 });
 

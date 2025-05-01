@@ -2,6 +2,7 @@ import { Bundler } from '../../bundler';
 import { DepMap } from '../../module-registry';
 import { Module } from '../../module/Module';
 import { BabelTransformer } from '../../transforms/babel';
+import { MDXTransformer } from '../../transforms/mdx';
 import { CSSTransformer } from '../../transforms/css';
 import { ReactRefreshTransformer } from '../../transforms/react-refresh';
 import { StyleTransformer } from '../../transforms/style';
@@ -22,12 +23,14 @@ export class ReactPreset extends Preset {
       this.registerTransformer(new ReactRefreshTransformer()),
       this.registerTransformer(new CSSTransformer()),
       this.registerTransformer(new StyleTransformer()),
+      this.registerTransformer(new MDXTransformer()),
     ]);
   }
 
   mapTransformers(module: Module): Array<[string, any]> {
-    if (/^(?!\/node_modules\/).*\.(((m|c)?jsx?)|tsx)$/.test(module.filepath)) {
+    if (/^(?!\/node_modules\/).*\.(((m|c)?jsx?)|tsx|mdx)$/.test(module.filepath)) {
       return [
+        ['mdx-transformer', {}],
         [
           'babel-transformer',
           {
@@ -78,6 +81,7 @@ export class ReactPreset extends Preset {
   }
 
   augmentDependencies(dependencies: DepMap): DepMap {
+    // TODO: add MDX deps here
     if (!dependencies['react-refresh']) {
       dependencies['react-refresh'] = '^0.11.0';
     }
