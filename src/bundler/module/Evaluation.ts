@@ -8,12 +8,14 @@ class EvaluationContext {
   globals: any;
   hot: HotContext;
   id: string;
+  metadata: Record<string, any> | null = null;
 
   constructor(evaluation: Evaluation) {
     this.exports = {};
     this.globals = {};
     this.hot = evaluation.module.hot;
     this.id = evaluation.module.id;
+    this.metadata = evaluation.module.metadata;
   }
 }
 

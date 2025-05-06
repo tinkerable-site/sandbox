@@ -4,12 +4,13 @@
     "module": "es2020",
     "target": "esnext",
     "jsx": "preserve",
+
     "esModuleInterop": true,
     "sourceMap": true,
     "allowJs": true,
     "lib": ["es6", "dom"],
     "rootDir": "src",
-    "moduleResolution": "node16",
+    "moduleResolution": "bundler",
     "downlevelIteration": true,
     "strictNullChecks": true
   },
