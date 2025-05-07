@@ -276,12 +276,14 @@ export class Bundler {
     for (let file of files) {
       try {
         const content = this.fs.readFileSync(file.path);
-        if (content !== file.code) {
-          res.push(file.path);
+        if (content == file.code) {
+          // no code change for the given file
+          continue
         }
       } catch (err) {
         // file does not exist
       }
+      res.push(file.path);
       this.fs.writeFile(file.path, file.code);
     }
     return res;

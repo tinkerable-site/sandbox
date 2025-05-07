@@ -4,11 +4,13 @@ import { HotContext } from './hot';
 import { Module } from './Module';
 
 class EvaluationContext {
+
   exports: any;
   globals: any;
   hot: HotContext;
   id: string;
   metadata: Record<string, any> | null = null;
+  evaluation: Evaluation;
 
   constructor(evaluation: Evaluation) {
     this.exports = {};
@@ -16,6 +18,14 @@ class EvaluationContext {
     this.hot = evaluation.module.hot;
     this.id = evaluation.module.id;
     this.metadata = evaluation.module.metadata;
+    this.evaluation = evaluation;
+  }
+
+  async dynamicImport(moduleToImport: string, symbolToImport = 'default'): Promise<any> {
+    this.evaluation.module.addDependency(moduleToImport);
+    const module = await this.evaluation.module.bundler.transformModule(moduleToImport)
+    const evaluation = module.evaluate()
+    return evaluation.context.exports[symbolToImport];
   }
 }
 
