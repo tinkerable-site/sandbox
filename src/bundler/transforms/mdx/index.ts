@@ -33,7 +33,7 @@ export class MDXTransformer extends Transformer {
     try {
       const compilerOutput = await compile(file, {
         development: true,
-        jsx: false,
+        jsx: true,
         outputFormat: 'program',
         recmaPlugins: this.recmaPlugins,
         rehypePlugins: this.rehypePlugins,
