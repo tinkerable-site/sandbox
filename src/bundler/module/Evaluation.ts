@@ -22,10 +22,14 @@ class EvaluationContext {
   }
 
   async dynamicImport(moduleToImport: string, symbolToImport = 'default'): Promise<any> {
-    this.evaluation.module.addDependency(moduleToImport);
-    const module = await this.evaluation.module.bundler.transformModule(moduleToImport)
+    const resolvedModuleName = await this.evaluation.module.bundler.resolveAsync(
+      moduleToImport,
+      this.evaluation.module.filepath
+    );
+    this.evaluation.module.addDependency(resolvedModuleName);
+    const module = await this.evaluation.module.bundler.transformModule(resolvedModuleName)
     const evaluation = module.evaluate()
-    return evaluation.context.exports[symbolToImport];
+    return symbolToImport == '*' ? evaluation.context.exports : evaluation.context.exports[symbolToImport];
   }
 }
 
