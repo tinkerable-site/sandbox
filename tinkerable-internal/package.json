@@ -1,0 +1,10 @@
+{
+    "name": "@tinkerable/internal",
+    "main": "./index.js",
+    "dependencies": {
+        "react": "^19.1.0"
+    },
+    "devDependencies": {
+        "@types/react": "^19.1.5"
+    }
+}

@@ -8,12 +8,15 @@ import { ReactRefreshTransformer } from '../../transforms/react-refresh';
 import { StyleTransformer } from '../../transforms/style';
 import { Preset } from '../Preset';
 
+
 export class ReactPreset extends Preset {
   defaultHtmlBody = '<div id="root"></div>';
 
   constructor() {
     super('react');
   }
+
+
 
   async init(bundler: Bundler): Promise<void> {
     await super.init(bundler);
@@ -29,7 +32,7 @@ export class ReactPreset extends Preset {
 
   mapTransformers(module: Module): Array<[string, any]> {
     if (/^(?!\/node_modules\/).*\.(((m|c)?jsx?)|tsx|mdx)$/.test(module.filepath)) {
-      const transfomers:Array<[string, any]> = [
+      const transfomers: Array<[string, any]> = [
         [
           'babel-transformer',
           {

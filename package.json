@@ -13,11 +13,14 @@
     "prepare": "husky install",
     "dev": "parcel ./src/index.html",
     "start": "node ./server.js",
-    "build": "parcel build ./src/index.html --no-scope-hoist && cp _headers dist/_headers",
+    "build": "npm run build:tinkerable-internal && npm run build:parcel",
+    "build:parcel": "parcel build ./src/index.html --no-scope-hoist",
+    "build:tinkerable-internal": "tsup && cp tinkerable-internal/package.json static/tinkerable-internal/",
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"./src/**/*.{ts,tsx,js,jsx,json}\"",
-    "lint": "eslint '**/*.ts?(x)'"
+    "lint": "eslint '**/*.ts?(x)'",
+    "deploy": "firebase deploy"
   },
   "importSort": {
     ".js, .jsx, .ts, .tsx": {
@@ -44,6 +47,8 @@
     "gensync": "^1.0.0-beta.2",
     "micromatch": "^4.0.5",
     "p-queue": "^6.6.2",
+    "pako": "^2.1.0",
+    "parse-tar": "^1.2.2",
     "postcss": "^8.4.14",
     "postcss-url": "^10.1.3",
     "postcss-value-parser": "^4.2.0",
@@ -59,11 +64,11 @@
     "yaml": "^2.7.1"
   },
   "devDependencies": {
-    "firebase-tools": "^14.4.0",
     "@octokit/rest": "^18.12.0",
     "@swc-node/jest": "^1.4.3",
     "@types/jest": "^27.4.1",
     "@types/micromatch": "^4.0.2",
+    "@types/pako": "^2.0.3",
     "@types/postcss-url": "^10.0.0",
     "@types/url-join": "^4.0.1",
     "@types/uuid": "^8.3.4",
@@ -76,6 +81,7 @@
     "events": "^3.3.0",
     "fastify": "^3.28.0",
     "fastify-static": "^4.6.1",
+    "firebase-tools": "^14.4.0",
     "gzip-size": "^7.0.0",
     "husky": "^7.0.4",
     "import-sort-style-module": "^6.0.0",
@@ -84,12 +90,14 @@
     "node-fetch": "^3.2.4",
     "os-browserify": "^0.3.0",
     "parcel": "2.14.4",
+    "parcel-reporter-static-files-copy": "^1.5.3",
     "path-browserify": "^1.0.1",
     "prettier": "^2.6.2",
     "prettier-plugin-import-sort": "^0.0.7",
     "pretty-quick": "^3.1.3",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
+    "tsup": "^8.5.0",
     "typescript": "5.8.3",
     "url": "^0.11.0",
     "util": "^0.12.4"

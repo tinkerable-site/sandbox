@@ -34,7 +34,7 @@ export class MDXTransformer extends Transformer {
       const compilerOutput = await compile(file, {
         development: true,
         jsx: true,
-        providerImportSource: '/MDX',
+        providerImportSource: '@tinkerable/internal',
         outputFormat: 'program',
         recmaPlugins: this.recmaPlugins,
         rehypePlugins: this.rehypePlugins,

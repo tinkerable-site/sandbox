@@ -16,8 +16,18 @@ import { ModuleRegistry } from './module-registry';
 import { Module } from './module/Module';
 import { Preset } from './presets/Preset';
 import { getPreset } from './presets/registry';
-
+import localModulesInfo from '../config/local_modules.json'
+import {retryFetch} from '../utils/fetch'
+import {basename} from '../utils/path'
 export type TransformationQueue = NamedPromiseQueue<Module>;
+
+export const DEFAULT_CODE = `
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+`.trim()
 
 interface IBundlerOpts {
   messageBus: IFrameParentMessageBus;
@@ -270,6 +280,53 @@ export class Bundler {
     }
   }
 
+  private getNodeModuleFiles(moduleName: string, code?: string, packageJSON?: string): [string, string][] {
+    return [
+      [`/node_modules/${moduleName}/package.json`, packageJSON ?? JSON.stringify({
+        name: moduleName,
+        main: "./index.js",
+      })],
+      [`/node_modules/${moduleName}/index.js`, code ?? DEFAULT_CODE]
+    ]
+  }
+
+  async addPreloadedModule(moduleName: string, code?: string, packageJSON?: string): Promise<void> {
+    const files = this.getNodeModuleFiles(moduleName, code, packageJSON);
+    const manifest = files.filter(([filename, _]) => basename(filename) === 'package.json')
+    if (manifest.length !== 1) {
+      throw Error ('addPreloadedModule did not find manifest for ' + moduleName);
+    }
+    const parsedPackageJSON:any = JSON.parse(manifest[0][1]);
+    for (let [filepath, contents] of files) {
+      this.fs.writeFile(filepath, contents);
+      if (filepath.endsWith('.js')) {
+        const module = new Module(filepath, contents, false, this);
+        this.modules.set(filepath, module);
+      }
+    }
+  }
+
+    async preloadModules(): Promise<void> {
+      this.addPreloadedModule("path");
+      this.addPreloadedModule("fs");
+      this.addPreloadedModule("util");
+      this.addPreloadedModule("assert");
+      this.addPreloadedModule("module");
+      this.addPreloadedModule("os");
+      this.addPreloadedModule("@internationalized/date");
+    }
+
+    async fetchSource(url: string): Promise<string> {
+      return await (await retryFetch(url)).text()
+    }
+
+    async addLocalModules(): Promise<void> {
+      for (let [moduleName, {packageJSON, code}] of Object.entries(localModulesInfo.modules)) {
+        await this.addPreloadedModule(moduleName, await this.fetchSource(code), await this.fetchSource(packageJSON))
+      }
+    }
+
+
   /** writes any new files and returns a list of updated modules */
   writeNewFiles(files: ISandboxFile[]): string[] {
     const res: string[] = [];
@@ -321,6 +378,8 @@ export class Bundler {
     } else {
       for (let file of files) {
         this.fs.writeFile(file.path, file.code);
+        await this.preloadModules();
+        await this.addLocalModules();
       }
     }
 

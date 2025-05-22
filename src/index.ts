@@ -9,7 +9,9 @@ import { ICompileRequest } from './protocol/message-types';
 import { Debouncer } from './utils/Debouncer';
 import { DisposableStore } from './utils/Disposable';
 import { getDocumentHeight } from './utils/document';
+import {loadCachedResponses} from './utils/fetch'
 import * as logger from './utils/logger';
+import cachedRequestInfo from './config/cached_requests.json'
 
 const bundlerStartTime = Date.now();
 
@@ -115,6 +117,10 @@ class SandpackInstance {
 
   async init() {
     this.messageBus.sendMessage('initialized');
+
+    for (let url of cachedRequestInfo.locations) {
+      loadCachedResponses(url)
+    }
 
     this.bundler.onStatusChange((newStatus) => {
       this.messageBus.sendMessage('status', { status: newStatus });
