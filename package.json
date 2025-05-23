@@ -10,6 +10,7 @@
     "url": "https://github.com/codesandbox/sandpack-bundler"
   },
   "scripts": {
+    "clean": "rm -rf dist/* && rm -rf .parcel-cache",
     "prepare": "husky install",
     "dev": "parcel ./src/index.html",
     "start": "node ./server.js",
