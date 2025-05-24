@@ -8,7 +8,7 @@ export default defineConfig([
     verbose: true,
     tsconfig: "./tsup.tsconfig.json",
     dts: true,
-    external: ["react", "react-dom"],
+    external: ["react", "react-dom", "react-router", "@chakra-ui/react"],
     clean: true,
     outDir: "./static/tinkerable-internal",
   },

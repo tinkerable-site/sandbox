@@ -1,8 +1,8 @@
 import { useState, useEffect, ComponentType } from "react";
 
-const defaultLoadingComponent = () => <>loading...</>;
+export const defaultLoadingComponent = () => <>loading...</>;
 
-const defaultErrorComponent = ({error}:{error:string}) => <>{error}</>;
+export const defaultErrorComponent = ({error}:{error:string}) => <>{error}</>;
 
 // Content is a ReactNode, a Promise resolving to a ReactNode or an (async) function returning a ReactNode.
 export type AsyncComponent =
