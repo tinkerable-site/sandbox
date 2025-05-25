@@ -1,6 +1,7 @@
 {
     "name": "@tinkerable/internal",
     "main": "./index.js",
+    "types": "./index.d.ts",
     "dependencies": {
         "@chakra-ui/react": "^3.19.1",
         "react": "^19.1.0",

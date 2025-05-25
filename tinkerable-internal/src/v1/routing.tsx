@@ -63,7 +63,10 @@ export const Path: React.FC = ({
   // prefix with '/' to make URL more natural
   let filePath = '/' + params['*'];
   const Component = withAsyncComponent(
-    // module.dynamicImport is defined in the sandbox environment
+    // module.dynamicImport is defined in the sandbox environment.
+    // Note that dynamicImport is always relative to the current module,
+    // in this case @tinkerable/internal/v1, but this is ok since
+    // <Path> only makes sense with absolute module paths.
     // @ts-ignore
     module.dynamicImport(filePath),
     loadingComponent,

@@ -1,0 +1,11 @@
+{
+  "modules": {
+    "@tinkerable/internal": {
+      "urls": {
+        "package.json": "/tinkerable-internal/package.json",
+        "index.js": "/tinkerable-internal/index.js",
+        "v1.js": "/tinkerable-internal/v1.js"
+      }
+    }
+  }
+}

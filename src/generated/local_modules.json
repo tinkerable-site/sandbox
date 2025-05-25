@@ -1,8 +1,0 @@
-{
-  "modules": {
-    "@tinkerable/internal": {
-      "packageJSON": "/tinkerable-internal/package.json",
-      "code": "/tinkerable-internal/index.js"
-    }
-  }
-}

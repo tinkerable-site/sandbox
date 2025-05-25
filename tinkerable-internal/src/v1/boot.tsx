@@ -8,17 +8,25 @@ import { MDXProvider } from './MDXProvider';
 import { DEFAULT_MDX_COMPONENTS } from './MDXComponents';
 
 export type BootProps = {
-  App: FC;
+  App?: FC;
   routes?: RouteObject[];
   components?: Record<string, FC>;
 }
 
 export const boot = ({App,routes,components}:BootProps) => {
+  if ((!App) && (!routes)) {
+    throw new Error("boot requires App or routes to be set");
+  }
   const r = routes ?? [
     // By default, route everything to App
+    // @ts-expect-error
     { path: '*', element: <App /> },
   ];
-  const root = createRoot(document.getElementById('root')!);
+  const rootElement = document.getElementById('root');
+  if (!rootElement) {
+    throw new Error("boot requires root HTML element to exist");
+  }
+  const root = createRoot(rootElement);
   root.render(
     <StrictMode>
       <ChakraProvider value={defaultSystem}>

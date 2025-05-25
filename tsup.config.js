@@ -2,7 +2,10 @@ import { defineConfig } from "tsup";
 
 export default defineConfig([
   {
-    entry: ["./tinkerable-internal/index.ts"],
+    entry: {
+      "index": "./tinkerable-internal/src/index.ts",
+      "v1": "./tinkerable-internal/src/v1/index.ts"
+    },
     treeshake: true,
     minify: true,
     verbose: true,

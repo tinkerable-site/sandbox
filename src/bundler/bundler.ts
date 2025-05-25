@@ -17,8 +17,8 @@ import { Module } from './module/Module';
 import { Preset } from './presets/Preset';
 import { getPreset } from './presets/registry';
 import localModulesInfo from '../config/local_modules.json'
-import {retryFetch} from '../utils/fetch'
-import {basename} from '../utils/path'
+import { retryFetch } from '../utils/fetch'
+import { basename } from '../utils/path'
 export type TransformationQueue = NamedPromiseQueue<Module>;
 
 export const DEFAULT_CODE = `
@@ -294,9 +294,9 @@ export class Bundler {
     const files = this.getNodeModuleFiles(moduleName, code, packageJSON);
     const manifest = files.filter(([filename, _]) => basename(filename) === 'package.json')
     if (manifest.length !== 1) {
-      throw Error ('addPreloadedModule did not find manifest for ' + moduleName);
+      throw Error('addPreloadedModule did not find manifest for ' + moduleName);
     }
-    const parsedPackageJSON:any = JSON.parse(manifest[0][1]);
+    const parsedPackageJSON: any = JSON.parse(manifest[0][1]);
     for (let [filepath, contents] of files) {
       this.fs.writeFile(filepath, contents);
       if (filepath.endsWith('.js')) {
@@ -306,25 +306,38 @@ export class Bundler {
     }
   }
 
-    async preloadModules(): Promise<void> {
-      this.addPreloadedModule("path");
-      this.addPreloadedModule("fs");
-      this.addPreloadedModule("util");
-      this.addPreloadedModule("assert");
-      this.addPreloadedModule("module");
-      this.addPreloadedModule("os");
-      this.addPreloadedModule("@internationalized/date");
-    }
+  async preloadModules(): Promise<void> {
+    this.addPreloadedModule("path");
+    this.addPreloadedModule("fs");
+    this.addPreloadedModule("util");
+    this.addPreloadedModule("assert");
+    this.addPreloadedModule("module");
+    this.addPreloadedModule("os");
+    this.addPreloadedModule("@internationalized/date");
+  }
 
-    async fetchSource(url: string): Promise<string> {
-      return await (await retryFetch(url)).text()
-    }
+  async fetchSource(url: string): Promise<string> {
+    return await (await retryFetch(url)).text()
+  }
 
-    async addLocalModules(): Promise<void> {
-      for (let [moduleName, {packageJSON, code}] of Object.entries(localModulesInfo.modules)) {
-        await this.addPreloadedModule(moduleName, await this.fetchSource(code), await this.fetchSource(packageJSON))
+  private getModuleRelativePath(moduleName: string, relativePath: string): string {
+    return `/node_modules/${moduleName}/${relativePath}`;
+  }
+
+  async addLocalModules(): Promise<void> {
+    for (let [moduleName, {urls}] of Object.entries(localModulesInfo.modules)) {
+      const moduleSources = Object.entries(urls);
+      const codeContents = await Promise.all(moduleSources.map(([_name, url]) => this.fetchSource(url)))
+      for (let ix = 0; ix < moduleSources.length; ix++) {
+        const filepath = this.getModuleRelativePath(moduleName, moduleSources[ix][0]);
+        this.fs.writeFile(filepath, codeContents[ix]);
+        if (filepath.endsWith('.js')) {
+          const module = new Module(filepath, codeContents[ix], false, this);
+          this.modules.set(filepath, module);
+        }
       }
     }
+  }
 
 
   /** writes any new files and returns a list of updated modules */
@@ -366,14 +379,14 @@ export class Bundler {
 
       if (!changedFiles.length) {
         logger.debug('Skipping compilation, no changes detected');
-        return () => {};
+        return () => { };
       }
 
       // If it's a change and we don't have any hmr modules we simply reload the application
       if (!this.hasHMR) {
         logger.debug('HMR is not enabled, doing a full page refresh');
         window.location.reload();
-        return () => {};
+        return () => { };
       }
     } else {
       for (let file of files) {
@@ -408,7 +421,7 @@ export class Bundler {
       if (this._previousDepString != null && depString !== this._previousDepString) {
         logger.debug('Dependencies changed, reloading');
         location.reload();
-        return () => {};
+        return () => { };
       }
 
       this._previousDepString = depString;
