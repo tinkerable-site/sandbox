@@ -35,8 +35,10 @@ const makeWindow = (myLocation: typeof window.location) => {
       replaceState: (...args: any[]) => {
         console.log('replaceState', args);
       },
-      state: makeProxy({ name: 'state' }),
-    },
+      length: 1,
+      scrollRestoration: 'auto',
+      state: null
+    } as (typeof window.history.state),
     addEventListener: (...args: any[]) => {
       console.log('addEventListener', args);
     },
@@ -44,11 +46,15 @@ const makeWindow = (myLocation: typeof window.location) => {
 };
 
 export const SandboxRouterProvider = ({ routes, initialPath }: { routes: RouteObject[]; initialPath?: string }) => {
-  const pathname = initialPath ?? new URLSearchParams(window.location.search).get('path') ?? '/';
-  const myLocation = makeLocation(window.location, pathname);
-  const myWindow = makeWindow(myLocation);
-  const router = createBrowserRouter(routes, { window: myWindow });
-  return <RouterProvider router={router} />;
+  const memoizedRouter = React.useMemo(() => {
+    const pathname = initialPath ?? new URLSearchParams(window.location.search).get('path') ?? '/';
+    const myLocation = makeLocation(window.location, pathname);
+    const myWindow = makeWindow(myLocation);
+    const router = createBrowserRouter(routes, { window: myWindow });
+    return router;
+  }, [routes]);
+
+  return <RouterProvider router={memoizedRouter} />;
 };
 
 export const Path: React.FC = ({
