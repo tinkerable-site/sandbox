@@ -7,11 +7,11 @@ export default defineConfig([
       "v1": "./tinkerable-internal/src/v1/index.ts"
     },
     treeshake: true,
-    minify: true,
+    minify: false,
     verbose: true,
     tsconfig: "./tsup.tsconfig.json",
     dts: true,
-    external: ["react", "react-dom", "react-router", "@chakra-ui/react"],
+    external: ["react", "react-dom", "react-router", "@chakra-ui/react", "next-themes"],
     clean: true,
     outDir: "./static/tinkerable-internal",
   },

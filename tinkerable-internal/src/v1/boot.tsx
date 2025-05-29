@@ -1,38 +1,30 @@
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { FC, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { RouteObject } from 'react-router';
-
-import { SandboxRouterProvider } from './routing';
-import { MDXProvider } from './MDXProvider';
+import { ThemeProvider } from "next-themes"
 import { DEFAULT_MDX_COMPONENTS } from './MDXComponents';
+import { MDXProvider } from './MDXProvider';
+
 
 export type BootProps = {
-  App?: FC;
-  routes?: RouteObject[];
+  App: FC;
   components?: Record<string, FC>;
-}
+};
 
-export const boot = ({App,routes,components}:BootProps) => {
-  if ((!App) && (!routes)) {
-    throw new Error("boot requires App or routes to be set");
-  }
-  const r = routes ?? [
-    // By default, route everything to App
-    // @ts-expect-error
-    { path: '*', element: <App /> },
-  ];
+export const boot = ({ App, components }: BootProps) => {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
-    throw new Error("boot requires root HTML element to exist");
+    throw new Error('boot requires root HTML element to exist');
   }
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
       <ChakraProvider value={defaultSystem}>
-        <MDXProvider components={{...DEFAULT_MDX_COMPONENTS, ...(components ?? {})}}>
-          <SandboxRouterProvider routes={r} />
-        </MDXProvider>
+        <ThemeProvider attribute="class" disableTransitionOnChange>
+          <MDXProvider components={{ ...DEFAULT_MDX_COMPONENTS, ...(components ?? {}) }}>
+            <App />
+          </MDXProvider>
+        </ThemeProvider>
       </ChakraProvider>
     </StrictMode>
   );

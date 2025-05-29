@@ -1,60 +1,87 @@
 import * as React from 'react';
-import { RouteObject, RouterProvider, createBrowserRouter, useParams } from 'react-router';
+import { BrowserRouter, useParams } from 'react-router';
 
 import { defaultErrorComponent, defaultLoadingComponent, withAsyncComponent } from './AsyncComponent';
+import { sendMessage } from './sandboxUtils';
 
-const makeProxy = (obj: any) =>
-  new Proxy(obj, {
-    get(target, key) {
-      console.log('get', obj, ...arguments);
-      return target[key] ?? undefined;
-    },
-    set(target, key, value) {
-      console.log('set', obj, ...arguments);
-      if (key in target) {
-        return false;
-      }
-      return (target[key] = value);
-    },
-  });
-
-const makeLocation = (myLocation = window.location, pathname?: string) => {
-  return {
+const makeLocation = (myLocation = window.location, pathname?: string, search?: string, hash?: string) => {
+  const result = {
     ...JSON.parse(JSON.stringify(myLocation)),
     pathname: pathname ?? myLocation.pathname,
-    assign: (...args: any[]) => {
-      console.log('assign', args);
-    },
+    search: search ?? myLocation.search,
+    hash: hash ?? myLocation.hash,
+    /*
+    assign: (url: string) => {
+      result.pathname = url;
+      sendMessage('urlchange', { url, back: false, forward: true });
+    },*/
   } as typeof window.location;
+  return result;
 };
 
 const makeWindow = (myLocation: typeof window.location) => {
-  return {
+  let eventListeners: {type: string, handler: EventListenerOrEventListenerObject}[] = [];
+  const invokeListeners = (type: string, event: any) => {
+    eventListeners.filter(l => l.type === type).forEach(({handler}) => {
+      if (typeof(handler) === 'function') {
+        handler(event);
+      } else {
+        handler.handleEvent(event);
+      }
+    })
+  }
+  const historyStack:{data:any, url:string | URL | null}[] = []
+  const myWindow = {
     location: myLocation,
     history: {
+      pushState(data: any, unused: string, url: string | URL | null): void {
+        historyStack.push({data, url});
+        const strUrl = String(url);
+        if (strUrl) {
+          myLocation.pathname = strUrl;
+          sendMessage('urlchange', { url: strUrl, back: false, forward: true });
+        }
+      },
       replaceState: (...args: any[]) => {
         console.log('replaceState', args);
       },
       length: 1,
       scrollRestoration: 'auto',
-      state: null
-    } as (typeof window.history.state),
-    addEventListener: (...args: any[]) => {
-      console.log('addEventListener', args);
+      get state() {
+        if (historyStack.length === 0) {
+          return null;
+        }
+        return historyStack[historyStack.length - 1].data;
+
+      }
+    } as typeof window.history.state,
+    addEventListener: (...args:Parameters<typeof window.addEventListener>):void => {
+      eventListeners.push({type: args[0], handler: args[1]})
+    },
+    removeEventListener: (...args:Parameters<typeof window.removeEventListener>) => {
+      eventListeners = eventListeners.filter(({type, handler}) => (type !== args[0]) && (handler !== args[1]));
     },
   } as typeof window;
+  // @ts-ignore
+  module.evaluation.module.bundler.messageBus.onMessage((msg) => {
+    if (msg.type === 'urlchange') {
+      if (msg?.['back'] === true) {
+        invokeListeners('popstate', {});
+      }
+    }
+  });
+  return myWindow;
 };
 
-export const SandboxRouterProvider = ({ routes, initialPath }: { routes: RouteObject[]; initialPath?: string }) => {
-  const memoizedRouter = React.useMemo(() => {
-    const pathname = initialPath ?? new URLSearchParams(window.location.search).get('path') ?? '/';
-    const myLocation = makeLocation(window.location, pathname);
-    const myWindow = makeWindow(myLocation);
-    const router = createBrowserRouter(routes, { window: myWindow });
-    return router;
-  }, [routes]);
+const ensureLeadingSlash = (path: string) => (path.startsWith('/') ? path : `/${path}`);
 
-  return <RouterProvider router={memoizedRouter} />;
+export const SandboxRouter = ({ children }: { children?: React.ReactNode }) => {
+  const pathname = ensureLeadingSlash(new URLSearchParams(window.location.search).get('location') ?? '/');
+  const search = new URLSearchParams(window.location.search).get('search') ?? '';
+  const hash = new URLSearchParams(window.location.search).get('hash') ?? '';
+  const myLocation = makeLocation(window.location, pathname, search, hash);
+  const myWindow = makeWindow(myLocation);
+  return <BrowserRouter window={myWindow}>{children}</BrowserRouter>;
 };
 
 export const Path: React.FC = ({
