@@ -32,15 +32,20 @@ const makeWindow = (myLocation: typeof window.location) => {
       }
     })
   }
-  const historyStack:{data:any, url:string | URL | null}[] = []
+  // Instead of a stack of history entries, we only store a single state object
+  // the *actual* history stack is recorded by the parent Window.
+  const historyState:{data:any, url:string | URL | null}[] = []
   const myWindow = {
     location: myLocation,
     history: {
       pushState(data: any, unused: string, url: string | URL | null): void {
-        historyStack.push({data, url});
+        historyState.push({data, url});
         const strUrl = String(url);
         if (strUrl) {
+          // TODO: update hash and search fields of myLocation if necessary.
           myLocation.pathname = strUrl;
+          // Notify parent that the URL (and possibly active file) should be
+          // updated.
           sendMessage('urlchange', { url: strUrl, back: false, forward: true });
         }
       },
@@ -49,13 +54,7 @@ const makeWindow = (myLocation: typeof window.location) => {
       },
       length: 1,
       scrollRestoration: 'auto',
-      get state() {
-        if (historyStack.length === 0) {
-          return null;
-        }
-        return historyStack[historyStack.length - 1].data;
-
-      }
+      state: null
     } as typeof window.history.state,
     addEventListener: (...args:Parameters<typeof window.addEventListener>):void => {
       eventListeners.push({type: args[0], handler: args[1]})
@@ -67,8 +66,9 @@ const makeWindow = (myLocation: typeof window.location) => {
   // @ts-ignore
   module.evaluation.module.bundler.messageBus.onMessage((msg) => {
     if (msg.type === "urlchange") {
-      myWindow.history.pushState({fromParent: true}, '', ensureLeadingSlash(msg.url));
-      invokeListeners('popstate', {});
+      // TODO: update hash and search fields of myLocation if necessary.
+      myLocation.pathname = ensureLeadingSlash(msg.url);
+      invokeListeners('popstate', null);
     }
   });
   return myWindow;
