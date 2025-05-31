@@ -4,6 +4,8 @@ import { BrowserRouter, useParams } from 'react-router';
 import { defaultErrorComponent, defaultLoadingComponent, withAsyncComponent } from './AsyncComponent';
 import { sendMessage } from './sandboxUtils';
 
+const ensureLeadingSlash = (path: string) => (path.startsWith('/') ? path : `/${path}`);
+
 const makeLocation = (myLocation = window.location, pathname?: string, search?: string, hash?: string) => {
   const result = {
     ...JSON.parse(JSON.stringify(myLocation)),
@@ -64,16 +66,13 @@ const makeWindow = (myLocation: typeof window.location) => {
   } as typeof window;
   // @ts-ignore
   module.evaluation.module.bundler.messageBus.onMessage((msg) => {
-    if (msg.type === 'urlchange') {
-      if (msg?.['back'] === true) {
-        invokeListeners('popstate', {});
-      }
+    if (msg.type === "urlchange") {
+      myWindow.history.pushState({fromParent: true}, '', ensureLeadingSlash(msg.url));
+      invokeListeners('popstate', {});
     }
   });
   return myWindow;
 };
-
-const ensureLeadingSlash = (path: string) => (path.startsWith('/') ? path : `/${path}`);
 
 export const SandboxRouter = ({ children }: { children?: React.ReactNode }) => {
   const pathname = ensureLeadingSlash(new URLSearchParams(window.location.search).get('location') ?? '/');
