@@ -87,7 +87,6 @@ export class ReactPreset extends Preset {
   }
 
   augmentDependencies(dependencies: DepMap): DepMap {
-    // TODO: add MDX deps here
     if (!dependencies['react-refresh']) {
       dependencies['react-refresh'] = '^0.11.0';
     }
