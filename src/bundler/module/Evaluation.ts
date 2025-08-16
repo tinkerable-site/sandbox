@@ -22,23 +22,27 @@ class EvaluationContext {
   }
 
   async dynamicImport(moduleToImport: string, symbolToImport = 'default'): Promise<any> {
-    const resolvedModuleName = await this.evaluation.module.bundler.resolveAsync(
-      moduleToImport,
-      this.evaluation.module.filepath
-    );
-    this.evaluation.module.addDependency(resolvedModuleName);
-    const module = await this.evaluation.module.bundler.transformModule(resolvedModuleName)
-    const evaluation = module.evaluate()
+    const evaluation = await this.getModuleEvaluation(moduleToImport);
     return symbolToImport == '*' ? evaluation.context.exports : evaluation.context.exports[symbolToImport];
   }
 
-  async resolve(moduleName: string): Promise<string | undefined> {
+  async getModuleEvaluation(moduleName: string): Promise<Evaluation> {
+    const resolvedModuleName = (await this.resolve(moduleName, true))!;
+    this.evaluation.module.addDependency(resolvedModuleName);
+    const module = await this.evaluation.module.bundler.transformModule(resolvedModuleName)
+    return module.evaluate()
+  }
+
+  async resolve(moduleName: string, throwOnError=false): Promise<string | undefined> {
     try {
       return await this.evaluation.module.bundler.resolveAsync(
         moduleName,
         this.evaluation.module.filepath
       );
-    } catch {
+    } catch (e) {
+      if (throwOnError) {
+        throw e;
+      }
       return undefined
     }
   }

@@ -1,9 +1,10 @@
 import type { FC } from 'react';
-import { Suspense, lazy, useContext } from 'react';
+import { useContext } from 'react';
 
 import { sendMessage } from './sandboxUtils';
-import { NavigationState, TinkerableContext } from './TinkerableContext';
+import { TinkerableContext } from './TinkerableContext';
 import { RoutingSpec } from './RoutingSpec';
+import { defaultErrorComponent, defaultLoadingComponent, RenderFile } from './render';
 
 export const Router = () => {
   const {context: {navigation, routingSpec}} = useContext(TinkerableContext);
@@ -15,9 +16,6 @@ export const Router = () => {
   return <Component />;
 };
 
-export const defaultLoadingComponent = () => <>loading...</>;
-
-export const defaultErrorComponent = ({ error }: { error: string }) => <>{error}</>;
 
 export const FileRouter: FC = ({
   LoadingComponent = defaultLoadingComponent,
@@ -27,23 +25,11 @@ export const FileRouter: FC = ({
   ErrorComponent?: typeof defaultErrorComponent;
 }) => {
   const { context } = useContext(TinkerableContext);
-
-  const MyComponent = lazy(async () => {
-    try {
-      // @ts-ignore
-      return await module.dynamicImport(context.navigation.path, '*');
-    } catch (e) {
-      return {
-        default: () => <ErrorComponent error={String(e)} />,
-      };
-    }
-  });
-  // TODO: add react error boundary
-  return (
-    <Suspense fallback={<LoadingComponent />}>
-      <MyComponent />
-    </Suspense>
-  );
+  return <RenderFile
+    filename={context.navigation.path}
+    LoadingComponent={LoadingComponent}
+    ErrorComponent={ErrorComponent}
+  />
 };
 
 // Perform in-site navigation.

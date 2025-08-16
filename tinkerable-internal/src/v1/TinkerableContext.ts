@@ -1,12 +1,15 @@
 import {createContext} from 'react';
 import { RoutingSpec } from './RoutingSpec';
 
-export type NavigationState = {
+export type PathnameState = {
   mode:string,
   namespace:string,
   site:string,
   routeprefix:string,
   path:string,
+}
+
+export type NavigationState = PathnameState & {
   hash:string,
   search:string,
 }
