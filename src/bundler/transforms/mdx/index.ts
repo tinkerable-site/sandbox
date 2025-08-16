@@ -6,6 +6,7 @@ import remarkFrontmatter from 'remark-frontmatter'
 import { saveFrontmatterPlugin } from './frontmatter-plugin'
 import { BundlerError } from '../../../errors/BundlerError';
 import {VFileMessage} from 'vfile-message'
+import remarkGfm from 'remark-gfm'
 
 export class MDXTransformer extends Transformer {
 
@@ -40,6 +41,7 @@ export class MDXTransformer extends Transformer {
         rehypePlugins: this.rehypePlugins,
         remarkPlugins: [
           ...this.remarkPlugins,
+          [remarkGfm],
           [saveFrontmatterPlugin, ctx.module]
         ]
       })

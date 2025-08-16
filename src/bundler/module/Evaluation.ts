@@ -31,6 +31,17 @@ class EvaluationContext {
     const evaluation = module.evaluate()
     return symbolToImport == '*' ? evaluation.context.exports : evaluation.context.exports[symbolToImport];
   }
+
+  async resolve(moduleName: string): Promise<string | undefined> {
+    try {
+      return await this.evaluation.module.bundler.resolveAsync(
+        moduleName,
+        this.evaluation.module.filepath
+      );
+    } catch {
+      return undefined
+    }
+  }
 }
 
 export class Evaluation {

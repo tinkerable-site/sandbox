@@ -56,6 +56,7 @@
     "react": "19.1.0",
     "react-refresh": "0.17.0",
     "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
     "settle-promise": "^1.0.0",
     "solid-refresh": "^0.4.0",
     "strip-json-comments": "^4.0.0",
