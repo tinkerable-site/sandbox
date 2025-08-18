@@ -1,10 +1,11 @@
 import { FC, StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { DEFAULT_MDX_COMPONENTS } from './components';
 import { getInitialContext, updateContext } from './contextUtils';
-import { DEFAULT_MDX_COMPONENTS } from './MDXComponents';
 import { MDXProvider } from './MDXProvider';
-import { createRoutingSpec, Router } from './routing';
+import { ModuleCache, ModuleCacheContextProvider } from './moduleCache';
+import { Router, createRoutingSpec } from './routing';
 import { RoutingSpec } from './RoutingSpec';
 import { addListener } from './sandboxUtils';
 import { TinkerableContext, TinkerableState } from './TinkerableContext';
@@ -14,7 +15,7 @@ export type BootProps = {
   routes?: RoutingSpec;
 };
 
-export const TinkerableApp = ({ routingSpec }: { routingSpec:RoutingSpec }) => {
+export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => {
   const [context, setContext] = useState<TinkerableState>(getInitialContext(routingSpec));
   useEffect(
     () =>
@@ -36,12 +37,15 @@ export const boot = ({ mdxComponents, routes }: BootProps) => {
   if (!rootElement) {
     throw new Error('boot requires root HTML element to exist');
   }
+  const moduleCache = new ModuleCache();
   const root = createRoot(rootElement);
   root.render(
     <StrictMode>
-      <MDXProvider components={{ ...DEFAULT_MDX_COMPONENTS, ...(mdxComponents ?? {}) }}>
-        <TinkerableApp routingSpec={routingSpec} />
-      </MDXProvider>
+      <ModuleCacheContextProvider moduleCache={moduleCache}>
+        <MDXProvider components={{ ...DEFAULT_MDX_COMPONENTS, ...(mdxComponents ?? {}) }}>
+          <TinkerableApp routingSpec={routingSpec} />
+        </MDXProvider>
+      </ModuleCacheContextProvider>
     </StrictMode>
   );
 };

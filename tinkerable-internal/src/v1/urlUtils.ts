@@ -3,14 +3,6 @@ import { NavigationState, PathnameState } from "./TinkerableContext";
 
 export const getOuterHostname = () => Array.from(window.location.ancestorOrigins)[0];
 
-export const resolveRelativePath = async (navigation:NavigationState, evaluation:any):Promise<NavigationState> => {
-  // TODO: error handling
-  const resolvedPath = isAbsolutePath(navigation.path) ? navigation.path : (await evaluation.context.resolve(navigation.path, true)) as string;
-  return {
-    ...navigation,
-    path: resolvedPath
-  }
-}
 
 export const parseTarget = (target:string, navigation:NavigationState):NavigationState => {
   const newNavigation = {...navigation};

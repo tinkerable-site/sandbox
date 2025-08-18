@@ -4,7 +4,7 @@ import { useContext } from 'react';
 import { sendMessage } from './sandboxUtils';
 import { TinkerableContext } from './TinkerableContext';
 import { RoutingSpec } from './RoutingSpec';
-import { defaultErrorComponent, defaultLoadingComponent, RenderFile } from './render';
+import { defaultErrorComponent, defaultLoadingComponent, Include } from './include';
 
 export const Router = () => {
   const {context: {navigation, routingSpec}} = useContext(TinkerableContext);
@@ -25,7 +25,7 @@ export const FileRouter: FC = ({
   ErrorComponent?: typeof defaultErrorComponent;
 }) => {
   const { context } = useContext(TinkerableContext);
-  return <RenderFile
+  return <Include
     filename={context.navigation.path}
     LoadingComponent={LoadingComponent}
     ErrorComponent={ErrorComponent}

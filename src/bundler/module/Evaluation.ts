@@ -9,7 +9,6 @@ class EvaluationContext {
   globals: any;
   hot: HotContext;
   id: string;
-  metadata: Record<string, any> | null = null;
   evaluation: Evaluation;
 
   constructor(evaluation: Evaluation) {
@@ -17,34 +16,26 @@ class EvaluationContext {
     this.globals = {};
     this.hot = evaluation.module.hot;
     this.id = evaluation.module.id;
-    this.metadata = evaluation.module.metadata;
     this.evaluation = evaluation;
   }
 
   async dynamicImport(moduleToImport: string, symbolToImport = 'default'): Promise<any> {
-    const evaluation = await this.getModuleEvaluation(moduleToImport);
-    return symbolToImport == '*' ? evaluation.context.exports : evaluation.context.exports[symbolToImport];
+    const evaluationContext = await this.getModuleEvaluationContext(moduleToImport);
+    return symbolToImport == '*' ? evaluationContext.exports : evaluationContext.exports[symbolToImport];
   }
 
-  async getModuleEvaluation(moduleName: string): Promise<Evaluation> {
-    const resolvedModuleName = (await this.resolve(moduleName, true))!;
+  async getModuleEvaluationContext(moduleName: string): Promise<EvaluationContext> {
+    const resolvedModuleName = (await this.resolve(moduleName));
     this.evaluation.module.addDependency(resolvedModuleName);
     const module = await this.evaluation.module.bundler.transformModule(resolvedModuleName)
-    return module.evaluate()
+    return module.evaluate().context
   }
 
-  async resolve(moduleName: string, throwOnError=false): Promise<string | undefined> {
-    try {
-      return await this.evaluation.module.bundler.resolveAsync(
-        moduleName,
-        this.evaluation.module.filepath
-      );
-    } catch (e) {
-      if (throwOnError) {
-        throw e;
-      }
-      return undefined
-    }
+  async resolve(moduleName: string): Promise<string> {
+    return await this.evaluation.module.bundler.resolveAsync(
+      moduleName,
+      this.evaluation.module.filepath
+    );
   }
 }
 
