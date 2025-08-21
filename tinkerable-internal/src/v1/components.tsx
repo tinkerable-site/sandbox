@@ -1,49 +1,51 @@
-import { Suspense, use, useCallback, useContext, type ReactNode } from 'react';
-import { isInternalHref, constructUrl, parseTarget, isAbsolutePath } from './urlUtils';
-import { NavigationState, TinkerableContext } from './TinkerableContext';
-import {navigate} from './routing'
-import { RenderExportedComponentContext, defaultLoadingComponent as LoadingComponent } from './include';
+import { ReactNode, Suspense, use, useCallback, useContext } from 'react';
+
+import { defaultLoadingComponent as LoadingComponent, RenderExportedComponentContext } from './include';
 import { ModuleCacheContext } from './moduleCache';
+import { navigate } from './routing';
+import { NavigationState, TinkerableContext } from './TinkerableContext';
+import { constructUrl, isAbsolutePath, isInternalHref, parseTarget } from './urlUtils';
 
 export const BasicInternalLink = ({
-  props: {href, otherProps},
+  href,
   children,
-}: {
-  props: Record<string, any>;
-  children: ReactNode;
-}): ReactNode => {
-  const clickHandler = useCallback((e:Event) => {
-   e.preventDefault();
-   navigate(href);
- }, [href]);
-  return <a
-    href={href}
-    onClick={clickHandler}
-    {...otherProps}
-    >
+  ...props
+}: React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>): ReactNode => {
+  const clickHandler = useCallback(
+    (e: any) => {
+      if (href) {
+        e.preventDefault();
+        navigate(href);
+      }
+    },
+    [href]
+  );
+  return (
+    <a href={href} onClick={clickHandler} {...props}>
       {children}
     </a>
-}
+  );
+};
 
 export const RelativeInternalLinkHelper = ({
   props,
   children,
   navigationState,
-  pathPromise
+  pathPromise,
 }: {
   props: Record<string, any>;
   children: ReactNode;
   navigationState: NavigationState;
-  pathPromise: Promise<string>
+  pathPromise: Promise<string>;
 }) => {
   const resolvedPath = use(pathPromise);
-  const outerLink = constructUrl({...navigationState, path: resolvedPath})
-  return <BasicInternalLink
-    props={{...props, href: outerLink, }}
-    >
+  const outerLink = constructUrl({ ...navigationState, path: resolvedPath });
+  return (
+    <BasicInternalLink {...props} href={outerLink}>
       {children}
     </BasicInternalLink>
-}
+  );
+};
 
 export const RelativeInternalLink = ({
   props,
@@ -56,58 +58,75 @@ export const RelativeInternalLink = ({
 }) => {
   const renderContext = use(RenderExportedComponentContext);
   const moduleCacheContext = use(ModuleCacheContext);
-  if ((renderContext === null) || (moduleCacheContext === null)) {
-    throw new Error('renderContext and moduleCacheContext must be defined')!
+  if (renderContext === null || moduleCacheContext === null) {
+    throw new Error('renderContext and moduleCacheContext must be defined')!;
   }
   const mod = renderContext.evaluationContext;
   const pathPromise = moduleCacheContext.resolveModuleName(navigationState.path, mod);
-  return <Suspense fallback={<LoadingComponent />}>
-    <RelativeInternalLinkHelper props={props} navigationState={navigationState} pathPromise={pathPromise}>
-      {children}
-    </RelativeInternalLinkHelper>
-  </Suspense>
-}
+  return (
+    <Suspense fallback={<LoadingComponent />}>
+      <RelativeInternalLinkHelper props={props} navigationState={navigationState} pathPromise={pathPromise}>
+        {children}
+      </RelativeInternalLinkHelper>
+    </Suspense>
+  );
+};
 
 export const InternalLink = ({
   to,
-  props,
   children,
-}: {
-  to:string;
-  props: Record<string, any>;
-  children: ReactNode;
-}): ReactNode => {
-  const {context: {navigation}} = use(TinkerableContext);
+  ...props
+}: { to: string } & React.DetailedHTMLProps<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  HTMLAnchorElement
+>): ReactNode => {
+  const {
+    context: { navigation },
+  } = use(TinkerableContext);
   let nextNavigationState = parseTarget(to, navigation);
   if (!isAbsolutePath(nextNavigationState.path)) {
-    return <RelativeInternalLink props={props} navigationState={nextNavigationState}>{children}</RelativeInternalLink>
+    return (
+      <RelativeInternalLink props={props} navigationState={nextNavigationState}>
+        {children}
+      </RelativeInternalLink>
+    );
   }
   const outerLink = constructUrl(nextNavigationState);
-  return <BasicInternalLink
-    props={{...props, href: outerLink, }}
-    >
+  return (
+    <BasicInternalLink href={outerLink} {...props}>
       {children}
     </BasicInternalLink>
-}
+  );
+};
 
 export const Link = ({
-  props: {href, otherProps},
+  href,
   children,
-}: {
-  props: Record<string, any>;
-  children: ReactNode;
-}): ReactNode => {
-  const {context} = useContext(TinkerableContext)
-  if (isInternalHref(href)) {
-    return <InternalLink to={href} props={otherProps}>{children}</InternalLink>
+  ...properties
+}: React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>): ReactNode => {
+  const { context } = useContext(TinkerableContext);
+  if (href && isInternalHref(href)) {
+    return (
+      <InternalLink to={href} {...properties}>
+        {children}
+      </InternalLink>
+    );
   } else {
     // create a regular link to external resource
-    return <a {...{href, ...otherProps}} >{children}</a>
+    return <a {...{ href, ...properties }}>{children}</a>;
   }
 };
 
 export const DEFAULT_MDX_COMPONENTS = {
-  a({ children, ...properties }: {children:ReactNode, properties:any}) {
-    return <Link props={properties}>{children}</Link>;
+  a({
+    href,
+    children,
+    ...properties
+  }: React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>) {
+    return (
+      <Link href={href} {...properties}>
+        {children}
+      </Link>
+    );
   },
 };

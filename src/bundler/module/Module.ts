@@ -15,7 +15,6 @@ export class Module {
   compiled: string | null;
   bundler: Bundler;
   evaluation: Evaluation | null = null;
-  metadata: Record<string, any> | null = null;
   hot: HotContext;
 
   compilationError: BundlerError | null = null;

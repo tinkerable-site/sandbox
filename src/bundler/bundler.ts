@@ -19,6 +19,8 @@ import { getPreset } from './presets/registry';
 import localModulesInfo from '../config/local_modules.json'
 import { retryFetch } from '../utils/fetch'
 import { basename } from '../utils/path'
+import { parseFrontmatter } from './frontmatter';
+
 export type TransformationQueue = NamedPromiseQueue<Module>;
 
 export const DEFAULT_CODE = `
@@ -56,6 +58,7 @@ export class Bundler {
   // Map from module id => parent module ids
   initiators = new Map<string, Set<string>>();
   runtimes: string[] = [];
+  metadata: Map<string, Record<string, any>> = new Map()
 
   private onStatusChangeEmitter = new Emitter<BundlerStatus>();
   onStatusChange = this.onStatusChangeEmitter.event;
@@ -313,7 +316,7 @@ export class Bundler {
     this.addPreloadedModule("assert");
     this.addPreloadedModule("module");
     this.addPreloadedModule("os");
-    this.addPreloadedModule("@internationalized/date");
+    // this.addPreloadedModule("@internationalized/date");
   }
 
   async fetchSource(url: string): Promise<string> {
@@ -353,10 +356,27 @@ export class Bundler {
       } catch (err) {
         // file does not exist
       }
+      this.extractMetadata(file);
       res.push(file.path);
       this.fs.writeFile(file.path, file.code);
     }
     return res;
+  }
+
+  extractMetadata(file: ISandboxFile) {
+    if (file.path.endsWith('.mdx')) {
+      try {
+        const {data} = parseFrontmatter(file.code);
+        if (Object.keys(data).length > 0) {
+          this.metadata.set(
+            file.path,
+            data
+          )
+        }
+      } catch (e) {
+        console.warn(`Error parsing metadata for ${file.path}`, e);
+      }
+    }
   }
 
   async compile(files: ISandboxFile[]): Promise<() => any> {
@@ -390,6 +410,7 @@ export class Bundler {
       }
     } else {
       for (let file of files) {
+        this.extractMetadata(file);
         this.fs.writeFile(file.path, file.code);
         await this.preloadModules();
         await this.addLocalModules();

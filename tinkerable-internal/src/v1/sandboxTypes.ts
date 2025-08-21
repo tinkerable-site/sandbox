@@ -8,7 +8,6 @@ export type EvaluationContext = {
   resolve: (moduleName: string) => Promise<string>;
   evaluation: {
     module: {
-      metadata: Record<string, any> | null;
       source: string;
       filepath: string;
     }
