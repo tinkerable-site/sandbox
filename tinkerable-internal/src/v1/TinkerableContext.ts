@@ -1,5 +1,7 @@
 import {createContext} from 'react';
 import { RoutingSpec } from './RoutingSpec';
+import { FilesMetadata } from './sandboxTypes';
+
 
 export type PathnameState = {
   mode:string,
@@ -17,12 +19,8 @@ export type NavigationState = PathnameState & {
 export type TinkerableState = {
   outerHref: string,
   navigation: NavigationState,
-  routingSpec: RoutingSpec
+  routingSpec: RoutingSpec,
+  filesMetadata: FilesMetadata;
 }
 
-export type TinkerableContextType = {
-  context: TinkerableState,
-  setContext: React.Dispatch<React.SetStateAction<TinkerableState>>
-}
-
-export const TinkerableContext = createContext<TinkerableContextType>({} as TinkerableContextType);
+export const TinkerableContext = createContext<TinkerableState>({} as TinkerableState);

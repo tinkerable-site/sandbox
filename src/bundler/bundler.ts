@@ -7,7 +7,7 @@ import { IFrameParentMessageBus } from '../protocol/iframe';
 import { BundlerStatus } from '../protocol/message-types';
 import { ResolverCache, resolveAsync } from '../resolver/resolver';
 import { IPackageJSON, ISandboxFile } from '../types';
-import { Emitter } from '../utils/emitter';
+import { DelayedEmitter, Emitter } from '../utils/emitter';
 import { replaceHTML } from '../utils/html';
 import * as logger from '../utils/logger';
 import { NamedPromiseQueue } from '../utils/NamedPromiseQueue';
@@ -19,9 +19,13 @@ import { getPreset } from './presets/registry';
 import localModulesInfo from '../config/local_modules.json'
 import { retryFetch } from '../utils/fetch'
 import { basename } from '../utils/path'
-import { parseFrontmatter } from './frontmatter';
+import { FrontmatterParseResult, parseFrontmatter } from './frontmatter';
 
 export type TransformationQueue = NamedPromiseQueue<Module>;
+export type MetadataChange = {
+  type: 'metadata-update',
+  update: Record<string, Record<string, any>>
+};
 
 export const DEFAULT_CODE = `
 "use strict";
@@ -38,6 +42,20 @@ interface IBundlerOpts {
 interface IFSOptions {
   hasAsyncFileResolver?: boolean;
 }
+
+const extractMetadata = (file: ISandboxFile):(FrontmatterParseResult|null) => {
+    if (file.path.endsWith('.mdx')) {
+      try {
+        const parseResult = parseFrontmatter(file.code);
+        if (Object.keys(parseResult.data).length > 0) {
+          return parseResult;
+        }
+      } catch (e) {
+        console.warn(`Error parsing metadata for ${file.path}`, e);
+      }
+    }
+    return null;
+  }
 
 export class Bundler {
   private lastHTML: string | null = null;
@@ -58,7 +76,9 @@ export class Bundler {
   // Map from module id => parent module ids
   initiators = new Map<string, Set<string>>();
   runtimes: string[] = [];
-  metadata: Map<string, Record<string, any>> = new Map()
+
+  private onMetadataChangeEmitter = new DelayedEmitter<MetadataChange>();
+  onMetadataChange = this.onMetadataChangeEmitter.event;
 
   private onStatusChangeEmitter = new Emitter<BundlerStatus>();
   onStatusChange = this.onStatusChangeEmitter.event;
@@ -346,6 +366,7 @@ export class Bundler {
   /** writes any new files and returns a list of updated modules */
   writeNewFiles(files: ISandboxFile[]): string[] {
     const res: string[] = [];
+    const changedMetadata: MetadataChange["update"] = {}
     for (let file of files) {
       try {
         const content = this.fs.readFileSync(file.path);
@@ -356,27 +377,17 @@ export class Bundler {
       } catch (err) {
         // file does not exist
       }
-      this.extractMetadata(file);
+      const metadata = extractMetadata(file);
+      if (metadata) {
+        changedMetadata[file.path] = metadata.data;
+      }
       res.push(file.path);
       this.fs.writeFile(file.path, file.code);
     }
-    return res;
-  }
-
-  extractMetadata(file: ISandboxFile) {
-    if (file.path.endsWith('.mdx')) {
-      try {
-        const {data} = parseFrontmatter(file.code);
-        if (Object.keys(data).length > 0) {
-          this.metadata.set(
-            file.path,
-            data
-          )
-        }
-      } catch (e) {
-        console.warn(`Error parsing metadata for ${file.path}`, e);
-      }
+    if (Object.keys(changedMetadata).length > 0) {
+      this.onMetadataChangeEmitter.fire({type: "metadata-update", update: changedMetadata});
     }
+    return res;
   }
 
   async compile(files: ISandboxFile[]): Promise<() => any> {
@@ -408,12 +419,19 @@ export class Bundler {
         window.location.reload();
         return () => { };
       }
-    } else {
+    } else { // initial load: process all files
+      const changedMetadata: MetadataChange["update"] = {}
       for (let file of files) {
-        this.extractMetadata(file);
+        const metadata = extractMetadata(file);
+        if (metadata) {
+          changedMetadata[file.path] = metadata.data;
+        }
         this.fs.writeFile(file.path, file.code);
         await this.preloadModules();
         await this.addLocalModules();
+      }
+      if (Object.keys(changedMetadata).length > 0) {
+        this.onMetadataChangeEmitter.fire({type: 'metadata-update', update: changedMetadata});
       }
     }
 

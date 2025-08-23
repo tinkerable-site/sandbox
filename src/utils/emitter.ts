@@ -53,3 +53,35 @@ export class Emitter<T> implements IDisposable {
     this.registeredListeners = new Set();
   }
 }
+
+export class DelayedEmitter<T> extends Emitter<T> {
+  private enabled = false;
+  private eventQueue: T[] = [];
+
+  private emptyQueue() {
+    for (let event of this.eventQueue) {
+      super.fire(event);
+    }
+    this.eventQueue = [];
+  }
+
+  fire(event: T): void {
+    if (this.enabled) {
+      super.fire(event);
+    } else {
+      this.eventQueue.push(event);
+    }
+  }
+
+  enable(isEnabled = true) {
+    this.enabled = isEnabled;
+    if (isEnabled) {
+      this.emptyQueue()
+    }
+  }
+
+  dispose(): void {
+    this.emptyQueue();
+    super.dispose()
+  }
+}

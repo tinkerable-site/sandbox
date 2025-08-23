@@ -80,9 +80,7 @@ export const InternalLink = ({
   React.AnchorHTMLAttributes<HTMLAnchorElement>,
   HTMLAnchorElement
 >): ReactNode => {
-  const {
-    context: { navigation },
-  } = use(TinkerableContext);
+  const { navigation } = use(TinkerableContext);
   let nextNavigationState = parseTarget(to, navigation);
   if (!isAbsolutePath(nextNavigationState.path)) {
     return (
@@ -104,7 +102,6 @@ export const Link = ({
   children,
   ...properties
 }: React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>): ReactNode => {
-  const { context } = useContext(TinkerableContext);
   if (href && isInternalHref(href)) {
     return (
       <InternalLink to={href} {...properties}>

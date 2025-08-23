@@ -225,6 +225,4 @@ class SandpackInstance {
 }
 
 // @ts-ignore
-window['nativeConsoleLog'] = window.console.log.bind(window.console);
-// @ts-ignore
 window['sandpack'] = new SandpackInstance();

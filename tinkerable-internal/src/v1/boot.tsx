@@ -9,11 +9,21 @@ import { Router, createRoutingSpec } from './routing';
 import { RoutingSpec } from './RoutingSpec';
 import { addListener } from './sandboxUtils';
 import { TinkerableContext, TinkerableState } from './TinkerableContext';
+import { FilesMetadata } from './sandboxTypes';
 
 export type BootProps = {
   mdxComponents?: Record<string, FC>;
   routes?: RoutingSpec;
 };
+
+const updateAlreadyApplied = (filesMetadata: FilesMetadata, update: FilesMetadata) => {
+  for (let [key, value] of Object.entries(update)) {
+    if (filesMetadata[key] !== value) {
+      return false
+    }
+  }
+  return true;
+}
 
 export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => {
   const [context, setContext] = useState<TinkerableState>(getInitialContext(routingSpec));
@@ -22,10 +32,31 @@ export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => 
       addListener('urlchange', ({ url }) => {
         setContext((context) => updateContext(context, url));
       }),
-    []
+    [setContext]
   );
+  useEffect(() => {
+    const dispose = addListener(
+      'metadata-update',
+      ({ update }: Record<string, any>) => {
+        setContext(prevContext => updateAlreadyApplied(prevContext.filesMetadata, update) ? prevContext : ({
+          ...prevContext,
+          filesMetadata: {
+            // TODO: file deletion!
+            ...(prevContext.filesMetadata),
+            ...update,
+          },
+        }));
+      },
+      // @ts-ignore
+      module.evaluation.module.bundler.onMetadataChange
+    );
+    // @ts-ignore
+    module.evaluation.module.bundler.onMetadataChangeEmitter.enable();
+    return dispose;
+  }, [setContext]);
+
   return (
-    <TinkerableContext value={{ context, setContext }}>
+    <TinkerableContext value={context}>
       <Router />
     </TinkerableContext>
   );

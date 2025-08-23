@@ -11,9 +11,9 @@ export const protocolRequest = (protocolName: string, method: string, params: Ar
   return module.evaluation.module.bundler.messageBus.protocolRequest(protocolName, method, params);
 }
 
-export const addListener = (msgType: string, handler: (msg:any)=>void):(() => void) => {
+export const addListener = (msgType: string, handler: (msg:any)=>void, event?:any):(() => void) => {
   // @ts-ignore
-  const disposable = module.evaluation.module.bundler.messageBus.onMessage((msg) => {
+  const disposable = (event ?? module.evaluation.module.bundler.messageBus.onMessage)((msg) => {
     if (msg.type === msgType) {
       handler(msg);
     }

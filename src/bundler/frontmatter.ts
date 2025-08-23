@@ -1,9 +1,7 @@
 import matter from 'gray-matter';
 
 export type FrontmatterParseResult = {
-    data: {
-        [key: string]: any;
-    };
+    data: Record<string, any>;
     content: string;
 }
 

@@ -1,9 +1,11 @@
 import type { RoutingSpec } from './RoutingSpec';
-import type { TinkerableState } from './TinkerableContext';
+import { type TinkerableState } from './TinkerableContext';
 import { parseOuterHref } from './urlUtils';
+import { FilesMetadata } from './sandboxTypes';
 
-export const getContextFromUrl = (routingSpec: RoutingSpec, outerHref: string):TinkerableState => {
+export const getContextFromUrl = (routingSpec: RoutingSpec, outerHref: string, filesMetadata?: FilesMetadata):TinkerableState => {
   return {
+    filesMetadata: filesMetadata ?? {},
     routingSpec,
     outerHref,
     navigation: parseOuterHref(outerHref)
@@ -20,5 +22,5 @@ export const updateContext = (context: TinkerableState, href: string):Tinkerable
     return context;
   }
   // the existing context is currently ignored
-  return getContextFromUrl(context.routingSpec, href);
+  return getContextFromUrl(context.routingSpec, href, context.filesMetadata);
 }

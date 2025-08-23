@@ -13,3 +13,9 @@ export type EvaluationContext = {
     }
   }
 }
+
+export type Metadata = Record<string, any>;
+export type FilesMetadata = Record<string, Metadata>;
+export type FileQueryResult = string[]
+export type MetadataQueryFunction = (filesMetadata:FilesMetadata) => FileQueryResult;
+export type MetadataQueryResult = {result: FileQueryResult} | {error: any}

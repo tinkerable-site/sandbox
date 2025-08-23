@@ -7,7 +7,7 @@ import { RoutingSpec } from './RoutingSpec';
 import { defaultErrorComponent, defaultLoadingComponent, Include } from './include';
 
 export const Router = () => {
-  const {context: {navigation, routingSpec}} = useContext(TinkerableContext);
+  const {navigation, routingSpec} = useContext(TinkerableContext);
   const Component = routingSpec[navigation.routeprefix];
   if (!Component) {
     // TODO: better error
@@ -24,9 +24,9 @@ export const FileRouter: FC = ({
   LoadingComponent?: typeof defaultLoadingComponent;
   ErrorComponent?: typeof defaultErrorComponent;
 }) => {
-  const { context } = useContext(TinkerableContext);
+  const { navigation } = useContext(TinkerableContext);
   return <Include
-    filename={context.navigation.path}
+    filename={navigation.path}
     LoadingComponent={LoadingComponent}
     ErrorComponent={ErrorComponent}
   />
