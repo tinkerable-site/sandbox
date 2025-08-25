@@ -35,4 +35,8 @@ export class NamedPromiseQueue<T> {
   onIdle(): Promise<void> {
     return this.queue.onIdle();
   }
+
+  pending(): number {
+    return this.queue.pending;
+  }
 }

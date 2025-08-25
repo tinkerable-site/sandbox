@@ -55,7 +55,7 @@ const OUTER_HREF_REGEXP = new RegExp('^' + PATH_SEGMENTS.map(({name, pattern}) =
 
 export const parsePath = (pathname:string): PathnameState => {
   const matchResults = pathname.match(OUTER_HREF_REGEXP)?.groups ?? {};
-  return PATH_SEGMENTS.reduce((acc, {name, toUrlSegment}:PathSegment) => {
+  return PATH_SEGMENTS.reduce((acc:Partial<PathnameState>, {name, toUrlSegment}:PathSegment) => {
     if (name in matchResults) {
       acc[name] = toUrlSegment ? toUrlSegment(matchResults[name]) : matchResults[name];
     }

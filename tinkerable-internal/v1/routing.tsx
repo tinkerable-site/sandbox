@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 
 import { sendMessage } from './sandboxUtils';
 import { TinkerableContext } from './TinkerableContext';
@@ -8,12 +8,12 @@ import { defaultErrorComponent, defaultLoadingComponent, Include } from './inclu
 
 export const Router = () => {
   const {navigation, routingSpec} = useContext(TinkerableContext);
-  const Component = routingSpec[navigation.routeprefix];
-  if (!Component) {
+  const reactNode = useMemo(() => routingSpec[navigation.routeprefix], [routingSpec, navigation.routeprefix]);
+  if (!reactNode) {
     // TODO: better error
     throw new Error(`RoutePrefix ${navigation.routeprefix} undefined!`);
   }
-  return <Component />;
+  return reactNode;
 };
 
 
@@ -29,6 +29,8 @@ export const FileRouter: FC = ({
     filename={navigation.path}
     LoadingComponent={LoadingComponent}
     ErrorComponent={ErrorComponent}
+    // @ts-ignore
+    baseModule={module}
   />
 };
 
@@ -45,7 +47,7 @@ export const navigate = (target: string) => {
 
 export const createRoutingSpec = (routes?: RoutingSpec): RoutingSpec => {
   return {
-    files: FileRouter,
+    files: <FileRouter />,
     ...(routes ?? {}),
   };
 };

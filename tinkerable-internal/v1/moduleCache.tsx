@@ -11,8 +11,13 @@ export class ModuleCache {
   constructor() {
     // reset cache on compile
     addListener('compile', () => {
-      this.nameResolutionPromises = {};
-      this.evaluationContextPromises = {};
+      // NOTE: THIS CAUSES AN UNNECESSARY RELOAD
+      // the <Include> component's module evaluation context promise is replaced
+      // with a new promise for the same value when a compilation occurs which
+      // doesn't affect the current module. Commenting out the following lines
+      // eliminates the unnecessary component state loss.
+      // this.nameResolutionPromises = {};
+      // this.evaluationContextPromises = {};
     })
   }
 

@@ -3,8 +3,20 @@
     "@tinkerable/internal": {
       "urls": {
         "package.json": "/tinkerable-internal/package.json",
-        "index.js": "/tinkerable-internal/index.js",
-        "v1.js": "/tinkerable-internal/v1.js"
+        "v1/moduleCache.js": "/tinkerable-internal/v1/moduleCache.js",
+        "v1/boot.js": "/tinkerable-internal/v1/boot.js",
+        "v1/RoutingSpec.js": "/tinkerable-internal/v1/RoutingSpec.js",
+        "v1/hooks.js": "/tinkerable-internal/v1/hooks.js",
+        "v1/sandboxUtils.js": "/tinkerable-internal/v1/sandboxUtils.js",
+        "v1/TinkerableContext.js": "/tinkerable-internal/v1/TinkerableContext.js",
+        "v1/index.js": "/tinkerable-internal/v1/index.js",
+        "v1/urlUtils.js": "/tinkerable-internal/v1/urlUtils.js",
+        "v1/components.js": "/tinkerable-internal/v1/components.js",
+        "v1/sandboxTypes.js": "/tinkerable-internal/v1/sandboxTypes.js",
+        "v1/MDXProvider.js": "/tinkerable-internal/v1/MDXProvider.js",
+        "v1/contextUtils.js": "/tinkerable-internal/v1/contextUtils.js",
+        "v1/include.js": "/tinkerable-internal/v1/include.js",
+        "v1/routing.js": "/tinkerable-internal/v1/routing.js"
       }
     }
   }

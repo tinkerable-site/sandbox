@@ -1,6 +1,11 @@
+#!/usr/bin/env bash
 # usage: bash scripts/cache_har.sh ~/Downloads/localhost.har static/cached_node_module_requests.tar.gz
 har_path="$1"
 tarball_path="$2"
+if [ -z "$har_path" ] || [ -z "$tarball_path" ]; then
+    echo "USAGE: $0 <har path> <tarball path>"
+    exit 1
+fi
 temp_dir="$(mktemp -d)"
 pushd "$temp_dir"
 url_list_json="url_list.json"

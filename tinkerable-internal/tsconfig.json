@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "outDir": "../static/tinkerable-internal",
+    "strict": true,
+    "module": "es2015",
+    "target": "esnext",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "lib": ["es6", "dom"],
+    "rootDir": "src",
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "rootDir": ".",
+    "jsx": "react-jsx",
+    "incremental": false
+  },
+  "include": ["v1"]
+}

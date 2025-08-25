@@ -1,7 +1,8 @@
-import { Suspense, createContext, use } from 'react';
+import { Suspense, createContext, use, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { EvaluationContext } from './sandboxTypes';
+
 import { ModuleCacheContext } from './moduleCache';
+import { EvaluationContext } from './sandboxTypes';
 
 export type RenderFileContextType = {
   evaluationContext: EvaluationContext;
@@ -15,39 +16,44 @@ export const defaultErrorComponent = () => <>ERROR</>;
 
 export const RenderExportedComponent = ({
   evaluationContextPromise,
-  exportedSymbol="default"
+  exportedSymbol = 'default',
 }: {
-  evaluationContextPromise: Promise<EvaluationContext>,
-  exportedSymbol:string
+  evaluationContextPromise: Promise<EvaluationContext>;
+  exportedSymbol: string;
 }) => {
   const evaluationContext = use(evaluationContextPromise);
   // TODO: handle case where exported symbol not found.
-  const Component = exportedSymbol === '*' ? evaluationContext.exports : evaluationContext.exports[exportedSymbol];
-  return (
-    <RenderExportedComponentContext value={{ evaluationContext }}>
-      <Component />
-    </RenderExportedComponentContext>
-  );
+  const renderedComponent = useMemo(() => {
+    const Component = exportedSymbol === '*' ? evaluationContext.exports : evaluationContext.exports[exportedSymbol];
+    return (
+      <RenderExportedComponentContext value={{ evaluationContext }}>
+        <Component />
+      </RenderExportedComponentContext>
+    );
+  }, [exportedSymbol]);
+  return renderedComponent;
 };
 
 export const Include = ({
   filename,
-  exportedSymbol="default",
+  exportedSymbol = 'default',
   LoadingComponent = defaultLoadingComponent,
   ErrorComponent = defaultErrorComponent,
+  baseModule,
 }: {
   filename: string;
   exportedSymbol?: string;
   LoadingComponent?: typeof defaultLoadingComponent;
   ErrorComponent?: typeof defaultErrorComponent;
+  baseModule?: EvaluationContext;
 }) => {
   const moduleCache = use(ModuleCacheContext);
   // @ts-ignore
-  const evaluationContextPromise = moduleCache!.getEvaluationContext(filename, module);
+  const evaluationContextPromise = moduleCache!.getEvaluationContext(filename, baseModule ?? module);
   return (
     <ErrorBoundary fallback={<ErrorComponent />}>
       <Suspense fallback={<LoadingComponent />}>
-        <RenderExportedComponent evaluationContextPromise={evaluationContextPromise} exportedSymbol={exportedSymbol}/>
+        <RenderExportedComponent evaluationContextPromise={evaluationContextPromise} exportedSymbol={exportedSymbol} />
       </Suspense>
     </ErrorBoundary>
   );

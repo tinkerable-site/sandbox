@@ -26,9 +26,24 @@ class EvaluationContext {
 
   async getModuleEvaluationContext(moduleName: string): Promise<EvaluationContext> {
     const resolvedModuleName = (await this.resolve(moduleName));
-    this.evaluation.module.addDependency(resolvedModuleName);
-    const module = await this.evaluation.module.bundler.transformModule(resolvedModuleName)
-    return module.evaluate().context
+    let moduleToEvaluate = this.evaluation.module.bundler.modules.get(resolvedModuleName)
+    if (moduleToEvaluate && moduleToEvaluate.compiled != null) {
+      return moduleToEvaluate.evaluation!.context
+    }
+    await this.evaluation.module.addDependency(resolvedModuleName);
+    moduleToEvaluate = await this.evaluation.module.bundler.transformModule(resolvedModuleName);
+    // @ts-ignore
+    const allDependencies = [...moduleToEvaluate.dependencyMap.values()];
+    const evaluatedDeps = await Promise.all(
+      allDependencies.map(
+        moduleName => this.evaluation.module.bundler.modules.get(moduleName)
+      ).filter(
+        mod => mod && (mod.compiled === null)
+      ).map(
+        mod => this.evaluation.module.bundler.transformationQueue.getItem(mod!.filepath)?.then(mod => mod.evaluate())
+      )
+    );
+    return moduleToEvaluate.evaluate().context
   }
 
   async resolve(moduleName: string): Promise<string> {
