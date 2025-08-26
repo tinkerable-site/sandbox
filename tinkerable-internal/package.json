@@ -1,7 +1,7 @@
 {
     "name": "@tinkerable/internal",
-    "main": "./v1/index.js",
-    "types": "./v1/index.d.ts",
+    "main": "./index.js",
+    "types": "./index.d.ts",
     "dependencies": {
         "react": "^19.1.0",
         "react-dom": "^19.1.0",

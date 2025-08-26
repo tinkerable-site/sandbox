@@ -26,7 +26,7 @@ export class ModuleCache {
   }
 
   resolveModuleName(moduleName:string, baseModule?:EvaluationContext):Promise<string> {
-    // note: uses current module (v1.js) as base module if none specified by caller
+    // note: uses current module as base module if none specified by caller
     // @ts-ignore
     const mod = baseModule ?? (module as EvaluationContext);
     const cacheKey = this.getCacheKey(mod, moduleName);
@@ -37,7 +37,7 @@ export class ModuleCache {
   }
 
   getEvaluationContext(moduleName:string, baseModule?:EvaluationContext):Promise<EvaluationContext> {
-    // note: uses current module (v1.js) as base module if none specified by caller
+    // note: uses current module as base module if none specified by caller
     // @ts-ignore
     const mod = baseModule ?? (module as EvaluationContext);
     const cacheKey = this.getCacheKey(mod, moduleName);

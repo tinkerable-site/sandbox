@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useContext, useMemo } from 'react';
+import { useContext } from 'react';
 
 import { sendMessage } from './sandboxUtils';
 import { TinkerableContext } from './TinkerableContext';
@@ -8,7 +8,7 @@ import { defaultErrorComponent, defaultLoadingComponent, Include } from './inclu
 
 export const Router = () => {
   const {navigation, routingSpec} = useContext(TinkerableContext);
-  const reactNode = useMemo(() => routingSpec[navigation.routeprefix], [routingSpec, navigation.routeprefix]);
+  const reactNode = routingSpec[navigation.routeprefix];
   if (!reactNode) {
     // TODO: better error
     throw new Error(`RoutePrefix ${navigation.routeprefix} undefined!`);

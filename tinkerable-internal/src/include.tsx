@@ -1,4 +1,4 @@
-import { Suspense, createContext, use, useMemo } from 'react';
+import { Suspense, createContext, use } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { ModuleCacheContext } from './moduleCache';
@@ -23,15 +23,12 @@ export const RenderExportedComponent = ({
 }) => {
   const evaluationContext = use(evaluationContextPromise);
   // TODO: handle case where exported symbol not found.
-  const renderedComponent = useMemo(() => {
-    const Component = exportedSymbol === '*' ? evaluationContext.exports : evaluationContext.exports[exportedSymbol];
-    return (
-      <RenderExportedComponentContext value={{ evaluationContext }}>
-        <Component />
-      </RenderExportedComponentContext>
-    );
-  }, [exportedSymbol]);
-  return renderedComponent;
+  const Component = exportedSymbol === '*' ? evaluationContext.exports : evaluationContext.exports[exportedSymbol];
+  return (
+    <RenderExportedComponentContext value={{ evaluationContext }}>
+      <Component />
+    </RenderExportedComponentContext>
+  );
 };
 
 export const Include = ({
