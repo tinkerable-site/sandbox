@@ -8,7 +8,7 @@ import { defaultErrorComponent, defaultLoadingComponent, Include } from './inclu
 
 export const Router = () => {
   const {navigation, routingSpec} = useContext(TinkerableContext);
-  const reactNode = routingSpec[navigation.routeprefix];
+  const reactNode = routingSpec.routePrefixes[navigation.routeprefix];
   if (!reactNode) {
     // TODO: better error
     throw new Error(`RoutePrefix ${navigation.routeprefix} undefined!`);
@@ -24,9 +24,10 @@ export const FileRouter: FC = ({
   LoadingComponent?: typeof defaultLoadingComponent;
   ErrorComponent?: typeof defaultErrorComponent;
 }) => {
-  const { navigation } = useContext(TinkerableContext);
+  const { navigation, routingSpec } = useContext(TinkerableContext);
+  const resolvedPath = (navigation.path in routingSpec.aliases) ? routingSpec.aliases[navigation.path] : navigation.path;
   return <Include
-    filename={navigation.path}
+    filename={resolvedPath}
     LoadingComponent={LoadingComponent}
     ErrorComponent={ErrorComponent}
     // @ts-ignore
@@ -45,9 +46,12 @@ export const navigate = (target: string) => {
   });
 };
 
-export const createRoutingSpec = (routes?: RoutingSpec): RoutingSpec => {
+export const createRoutingSpec = (routes: Partial<RoutingSpec> = {}): RoutingSpec => {
   return {
-    files: <FileRouter />,
-    ...(routes ?? {}),
+    routePrefixes: {
+      files: <FileRouter />,
+      ...(routes?.routePrefixes ?? {}),
+    },
+    aliases: routes.aliases ?? {}
   };
 };

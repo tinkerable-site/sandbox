@@ -13,7 +13,7 @@ import { FilesMetadata } from './sandboxTypes';
 
 export type BootProps = {
   mdxComponents?: Record<string, FC>;
-  routes?: RoutingSpec;
+  routingSpec?: Partial<RoutingSpec>;
 };
 
 const updateAlreadyApplied = (filesMetadata: FilesMetadata, update: FilesMetadata) => {
@@ -62,8 +62,8 @@ export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => 
   );
 };
 
-export const boot = ({ mdxComponents, routes }: BootProps) => {
-  const routingSpec = createRoutingSpec(routes);
+export const boot = ({ mdxComponents, routingSpec }: BootProps) => {
+  const effectiveRoutingSpec = createRoutingSpec(routingSpec);
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     throw new Error('boot requires root HTML element to exist');
@@ -74,7 +74,7 @@ export const boot = ({ mdxComponents, routes }: BootProps) => {
     <StrictMode>
       <ModuleCacheContextProvider moduleCache={moduleCache}>
         <MDXProvider components={{ ...DEFAULT_MDX_COMPONENTS, ...(mdxComponents ?? {}) }}>
-          <TinkerableApp routingSpec={routingSpec} />
+          <TinkerableApp routingSpec={effectiveRoutingSpec} />
         </MDXProvider>
       </ModuleCacheContextProvider>
     </StrictMode>
