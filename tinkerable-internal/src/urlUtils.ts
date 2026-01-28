@@ -48,8 +48,10 @@ export type PathSegment = {
 
 const PATH_SEGMENTS: PathSegment[] = [
   { name: 'mode', pattern: '\\w+' },
+  { name: 'provider', pattern: '[a-zA-Z0-9-_]+' },
   { name: 'namespace', pattern: '[a-zA-Z0-9-_]+' },
-  { name: 'site', pattern: '[a-zA-Z0-9-_]+' },
+  { name: 'repository', pattern: '[a-zA-Z0-9-_]+' },
+  { name: 'ref', pattern: '[a-zA-Z0-9-_]+' },
   { name: 'routeprefix', pattern: '[a-zA-Z0-9-_]+' },
   { name: 'path', pattern: '.*', transform: s => `/${s}` }
 ];

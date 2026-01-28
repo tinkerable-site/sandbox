@@ -6,7 +6,9 @@ import { FilesMetadata } from './sandboxTypes';
 export type PathnameState = {
   mode:string,
   namespace:string,
-  site:string,
+  provider:string,
+  repository:string,
+  ref:string,
   routeprefix:string,
   path:string,
 }
