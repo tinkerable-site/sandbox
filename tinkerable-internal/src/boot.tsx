@@ -28,10 +28,16 @@ const updateAlreadyApplied = (filesMetadata: FilesMetadata, update: FilesMetadat
 export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => {
   const [context, setContext] = useState<TinkerableState>(getInitialContext(routingSpec));
   useEffect(
-    () =>
-      addListener('urlchange', ({ url }) => {
-        setContext((context) => updateContext(context, url));
-      }),
+    () => {
+      const removeListener = addListener('urlchange', ({ url }) => {
+        setContext((context) => {
+          const updatedContext = updateContext(context, url);
+          console.log(`[Sandbox] Updating path from ${context.navigation.path} to ${updatedContext.navigation.path}`)
+          return updatedContext;
+        });
+      });
+      return removeListener
+    },
     [setContext]
   );
   useEffect(() => {

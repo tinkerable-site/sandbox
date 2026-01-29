@@ -39,6 +39,7 @@ export const FileRouter: FC = ({
 // Top level frame is messaged to updated URL, after which a message will be
 // sent wit the new href, triggering the actual navigation.
 export const navigate = (target: string) => {
+  console.log(`[Sandbox] Navigating to ${target}`)
   sendMessage('urlchange', {
     url: target,
     back: false,
