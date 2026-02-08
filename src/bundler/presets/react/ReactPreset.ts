@@ -31,7 +31,7 @@ export class ReactPreset extends Preset {
   }
 
   mapTransformers(module: Module): Array<[string, any]> {
-    if (/^(?!\/node_modules\/).*\.(((m|c)?jsx?)|tsx|mdx)$/.test(module.filepath)) {
+    if (/^(?!\/node_modules\/).*\.(((m|c)?jsx?)|tsx|mdx?)$/i.test(module.filepath)) {
       const transfomers: Array<[string, any]> = [
         [
           'babel-transformer',
@@ -52,7 +52,7 @@ export class ReactPreset extends Preset {
         ],
         ['react-refresh-transformer', {}],
       ];
-      if (module.filepath.endsWith('.mdx')) {
+      if (/.*\.(mdx?)$/i.test(module.filepath)) {
         transfomers.unshift(['mdx-transformer', {}])
       }
       return transfomers;
