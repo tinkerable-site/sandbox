@@ -1,39 +1,45 @@
-import type { FC } from 'react';
 import { useContext } from 'react';
 
 import { sendMessage } from './sandboxUtils';
-import { TinkerableContext } from './TinkerableContext';
-import { RoutingSpec } from './RoutingSpec';
-import { defaultErrorComponent, defaultLoadingComponent, Include } from './include';
+import { NavigationState, TinkerableContext } from './TinkerableContext';
+import { RoutingRule, RoutingSpec } from './RoutingSpec';
+
+export type AppliedRoutingRule = {
+  routingRule: RoutingRule,
+  pathParameters?: Record<string, string>;
+}
+
+export const applyRoutingRule = (routingSpec:RoutingSpec, navigationState: NavigationState): AppliedRoutingRule | undefined => {
+  const { sandboxPath } = navigationState;
+  for (const routingRule of routingSpec.routes) {
+    if (typeof routingRule.pattern === 'string') {
+      if (routingRule.pattern === sandboxPath) {
+        return {routingRule};
+      }
+    } else {
+      const match = sandboxPath.match(routingRule.pattern);
+      if (routingRule.pattern.test(sandboxPath)) {
+        return {
+          routingRule,
+          pathParameters: match?.groups
+        }
+      }
+    }
+  }
+  return undefined;
+}
 
 export const Router = () => {
-  const {navigation, routingSpec} = useContext(TinkerableContext);
-  const reactNode = routingSpec.routePrefixes[navigation.routeprefix];
-  if (!reactNode) {
+  const context = useContext(TinkerableContext);
+  const {navigation: {routingRule}} = context;
+  if (!routingRule) {
     // TODO: better error
-    throw new Error(`RoutePrefix ${navigation.routeprefix} undefined!`);
+    throw new Error(`No route registered for path ${context.navigation.sandboxPath}!`);
   }
-  return reactNode;
+
+  return routingRule.reactNode;
 };
 
-
-export const FileRouter: FC = ({
-  LoadingComponent = defaultLoadingComponent,
-  ErrorComponent = defaultErrorComponent,
-}: {
-  LoadingComponent?: typeof defaultLoadingComponent;
-  ErrorComponent?: typeof defaultErrorComponent;
-}) => {
-  const { navigation, routingSpec } = useContext(TinkerableContext);
-  const resolvedPath = (navigation.path in routingSpec.aliases) ? routingSpec.aliases[navigation.path] : navigation.path;
-  return <Include
-    filename={resolvedPath}
-    LoadingComponent={LoadingComponent}
-    ErrorComponent={ErrorComponent}
-    // @ts-ignore
-    baseModule={module}
-  />
-};
 
 // Perform in-site navigation.
 // Top level frame is messaged to updated URL, after which a message will be
@@ -45,14 +51,4 @@ export const navigate = (target: string) => {
     back: false,
     forward: false,
   });
-};
-
-export const createRoutingSpec = (routes: Partial<RoutingSpec> = {}): RoutingSpec => {
-  return {
-    routePrefixes: {
-      files: <FileRouter />,
-      ...(routes?.routePrefixes ?? {}),
-    },
-    aliases: routes.aliases ?? {}
-  };
 };

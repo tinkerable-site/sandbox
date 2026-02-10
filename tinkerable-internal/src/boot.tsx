@@ -1,19 +1,22 @@
 import { FC, StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { DEFAULT_MDX_COMPONENTS } from './components';
+import { DEFAULT_MDX_COMPONENTS } from './components/MDXComponents';
 import { getInitialContext, updateContext } from './contextUtils';
 import { MDXProvider } from './MDXProvider';
 import { ModuleCache, ModuleCacheContextProvider } from './moduleCache';
-import { Router, createRoutingSpec } from './routing';
-import { RoutingSpec } from './RoutingSpec';
+import { Router } from './routing';
+import type { RoutingSpec } from './RoutingSpec';
 import { addListener } from './sandboxUtils';
 import { TinkerableContext, TinkerableState } from './TinkerableContext';
 import { FilesMetadata } from './sandboxTypes';
+import { MainContent } from './components/MainContent';
+import { FileRouter } from './components/FileRouter';
+import { ErrorNotFound } from './components/errors';
 
 export type BootProps = {
   mdxComponents?: Record<string, FC>;
-  routingSpec?: Partial<RoutingSpec>;
+  routingSpec?: RoutingSpec;
 };
 
 const updateAlreadyApplied = (filesMetadata: FilesMetadata, update: FilesMetadata) => {
@@ -32,7 +35,9 @@ export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => 
       const removeListener = addListener('urlchange', ({ url }) => {
         setContext((context) => {
           const updatedContext = updateContext(context, url);
-          console.log(`[Sandbox] Updating path from ${context.navigation.path} to ${updatedContext.navigation.path}`)
+          if (updatedContext !== context) {
+            console.log(`[Sandbox] Updating path from ${context.navigation.sandboxPath} to ${updatedContext.navigation.sandboxPath}`)
+          }
           return updatedContext;
         });
       });
@@ -68,8 +73,18 @@ export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => 
   );
 };
 
-export const boot = ({ mdxComponents, routingSpec }: BootProps) => {
-  const effectiveRoutingSpec = createRoutingSpec(routingSpec);
+export const DEFAULT_ROUTING_SPEC: RoutingSpec = {
+  routes: [
+    {name: 'MainContent', pattern: /^\/$/, reactNode: <MainContent />},
+    {name: 'FileRouter', pattern: /^\/files(?<filename>\/.+)$/, reactNode: <FileRouter />},
+    {name: 'ErrorNotFound', pattern: /^(?<path>.+)$/, reactNode: <ErrorNotFound />},
+  ]
+};
+
+export const boot = ({
+  mdxComponents = DEFAULT_MDX_COMPONENTS,
+  routingSpec = DEFAULT_ROUTING_SPEC
+}: BootProps = {}) => {
   const rootElement = document.getElementById('root');
   if (!rootElement) {
     throw new Error('boot requires root HTML element to exist');
@@ -79,8 +94,8 @@ export const boot = ({ mdxComponents, routingSpec }: BootProps) => {
   root.render(
     <StrictMode>
       <ModuleCacheContextProvider moduleCache={moduleCache}>
-        <MDXProvider components={{ ...DEFAULT_MDX_COMPONENTS, ...(mdxComponents ?? {}) }}>
-          <TinkerableApp routingSpec={effectiveRoutingSpec} />
+        <MDXProvider components={mdxComponents}>
+          <TinkerableApp routingSpec={routingSpec} />
         </MDXProvider>
       </ModuleCacheContextProvider>
     </StrictMode>

@@ -1,10 +1,11 @@
-import { ReactNode, Suspense, use, useCallback, useContext } from 'react';
+import { ReactNode, Suspense, use, useCallback } from 'react';
 
-import { defaultLoadingComponent as LoadingComponent, RenderExportedComponentContext } from './include';
-import { ModuleCacheContext } from './moduleCache';
-import { navigate } from './routing';
-import { NavigationState, TinkerableContext } from './TinkerableContext';
-import { constructUrl, isAbsolutePath, isInternalHref, parseTarget } from './urlUtils';
+import { defaultLoadingComponent as LoadingComponent } from './defaults';
+import { ModuleCacheContext } from '../moduleCache';
+import { navigate } from '../routing';
+import { NavigationState, TinkerableContext } from '../TinkerableContext';
+import { constructUrl, isAbsolutePath, isInternalHref, parseTarget } from '../urlUtils';
+import { RenderExportedComponentContext } from './Include';
 
 export const BasicInternalLink = ({
   href,
@@ -39,7 +40,7 @@ export const RelativeInternalLinkHelper = ({
   pathPromise: Promise<string>;
 }) => {
   const resolvedPath = use(pathPromise);
-  const outerLink = constructUrl({ ...navigationState, path: resolvedPath });
+  const outerLink = constructUrl({ ...navigationState, sandboxPath: resolvedPath });
   return (
     <BasicInternalLink {...props} href={outerLink}>
       {children}
@@ -62,7 +63,7 @@ export const RelativeInternalLink = ({
     throw new Error('renderContext and moduleCacheContext must be defined')!;
   }
   const mod = renderContext.evaluationContext;
-  const pathPromise = moduleCacheContext.resolveModuleName(navigationState.path, mod);
+  const pathPromise = moduleCacheContext.resolveModuleName(navigationState.sandboxPath, mod);
   return (
     <Suspense fallback={<LoadingComponent />}>
       <RelativeInternalLinkHelper props={props} navigationState={navigationState} pathPromise={pathPromise}>
@@ -82,7 +83,7 @@ export const InternalLink = ({
 >): ReactNode => {
   const { navigation } = use(TinkerableContext);
   let nextNavigationState = parseTarget(to, navigation);
-  if (!isAbsolutePath(nextNavigationState.path)) {
+  if (!isAbsolutePath(nextNavigationState.sandboxPath)) {
     return (
       <RelativeInternalLink props={props} navigationState={nextNavigationState}>
         {children}

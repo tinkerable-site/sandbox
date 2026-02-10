@@ -2,21 +2,30 @@ import type { RoutingSpec } from './RoutingSpec';
 import { type TinkerableState } from './TinkerableContext';
 import { parseHref, getSearchParams } from './urlUtils';
 import { FilesMetadata } from './sandboxTypes';
+import { applyRoutingRule } from './routing';
 
-export const getContextFromUrl = (routingSpec: RoutingSpec, outerHref: string, searchParams: Record<string, string>, filesMetadata?: FilesMetadata):TinkerableState => {
-  const navigation = parseHref(outerHref, searchParams);
+export const getContextFromUrl = (routingSpec: RoutingSpec, outerHref: string, filesMetadata?: FilesMetadata):TinkerableState => {
+  const navigationState = parseHref(outerHref);
+  const appliedRoutingRule = applyRoutingRule(routingSpec, navigationState);
+    if (!appliedRoutingRule) {
+      // TODO: better error
+      throw new Error(`No route registered for path ${navigationState.sandboxPath}!`);
+    }
   return {
     filesMetadata: filesMetadata ?? {},
     routingSpec,
     outerHref,
-    navigation
+    navigation: {
+      ...navigationState,
+      ...appliedRoutingRule
+    }
   }
 }
 
 export const getInitialContext = (routingSpec: RoutingSpec):(() => TinkerableState) => {
   const searchParams = getSearchParams()
   // initial href is passed in 'href' search param value
-  return () => getContextFromUrl(routingSpec, searchParams['href'], searchParams);
+  return () => getContextFromUrl(routingSpec, searchParams['href']);
 }
 
 export const updateContext = (context: TinkerableState, href: string):TinkerableState => {
@@ -24,7 +33,5 @@ export const updateContext = (context: TinkerableState, href: string):Tinkerable
   if (href === context.outerHref) {
     return context;
   }
-  const searchParams = getSearchParams()
-  // the existing context is currently ignored
-  return getContextFromUrl(context.routingSpec, href, searchParams, context.filesMetadata);
+  return getContextFromUrl(context.routingSpec, href, context.filesMetadata);
 }

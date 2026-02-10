@@ -1,18 +1,15 @@
 import { Suspense, createContext, use } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-import { ModuleCacheContext } from './moduleCache';
-import { EvaluationContext } from './sandboxTypes';
+import { ModuleCacheContext } from '../moduleCache';
+import { EvaluationContext } from '../sandboxTypes';
+import { defaultErrorComponent, defaultLoadingComponent } from './defaults';
 
 export type RenderFileContextType = {
   evaluationContext: EvaluationContext;
 };
 
 export const RenderExportedComponentContext = createContext<RenderFileContextType | null>(null);
-
-export const defaultLoadingComponent = () => <>loading...</>;
-
-export const defaultErrorComponent = () => <>ERROR</>;
 
 export const RenderExportedComponent = ({
   evaluationContextPromise,
@@ -48,7 +45,7 @@ export const Include = ({
   // @ts-ignore
   const evaluationContextPromise = moduleCache!.getEvaluationContext(filename, baseModule ?? module);
   return (
-    <ErrorBoundary fallback={<ErrorComponent />}>
+    <ErrorBoundary fallbackRender={ErrorComponent}>
       <Suspense fallback={<LoadingComponent />}>
         <RenderExportedComponent evaluationContextPromise={evaluationContextPromise} exportedSymbol={exportedSymbol} />
       </Suspense>

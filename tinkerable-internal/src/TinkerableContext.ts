@@ -1,19 +1,20 @@
 import {createContext} from 'react';
-import { RoutingSpec } from './RoutingSpec';
+import { RoutingRule, RoutingSpec } from './RoutingSpec';
 import { FilesMetadata } from './sandboxTypes';
 
 
-export type PathnameState = {
+export type PathState = {
   mode:string,
   namespace:string,
   provider:string,
   repository:string,
   ref:string,
-  routeprefix:string,
-  path:string,
+  sandboxPath:string,
+  pathParameters?: Record<string, string>
+  routingRule?: RoutingRule
 }
 
-export type NavigationState = PathnameState & {
+export type NavigationState = PathState & {
   hash:string,
   search:string,
 }

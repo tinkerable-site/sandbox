@@ -1,4 +1,4 @@
-import { NavigationState, PathnameState } from "./TinkerableContext";
+import { NavigationState, PathState } from "./TinkerableContext";
 
 
 export const getOuterHostname = () => Array.from(window.location.ancestorOrigins)[0];
@@ -13,7 +13,7 @@ export const parseTarget = (target: string, navigation: NavigationState): Naviga
   if (prehash) {
     let [path, search] = prehash.split("?")
     if (path) {
-      newNavigation.path = path
+      newNavigation.sandboxPath = path
     }
     newNavigation.search = search ? search : '';
   }
@@ -52,38 +52,33 @@ const PATH_SEGMENTS: PathSegment[] = [
   { name: 'namespace', pattern: '[a-zA-Z0-9-_]+' },
   { name: 'repository', pattern: '[a-zA-Z0-9-_]+' },
   { name: 'ref', pattern: '[a-zA-Z0-9-_]+' },
-  { name: 'routeprefix', pattern: '[a-zA-Z0-9-_]+' },
-  { name: 'path', pattern: '.*', transform: s => `/${s}` }
+  { name: 'sandboxPath', pattern: '.*', transform: s => `/${s}` }
 ];
 
 const OUTER_HREF_REGEXP = new RegExp('^' + PATH_SEGMENTS.map(({ name, pattern }) => `\/(?<${name}>${pattern})`).join('') + "$");
 
-const getDefaultFromSearchParams = (name: string, searchParams: Record<string, string>): string|undefined => {
-    const default_key = `default_${name}`;
-    return searchParams[default_key]
-}
 
-export const parsePath = (pathname: string, searchParams: Record<string, string>): PathnameState => {
+export const parsePath = (pathname: string): PathState => {
   const matchResults = pathname.match(OUTER_HREF_REGEXP)?.groups ?? {};
-  return PATH_SEGMENTS.reduce((acc: Partial<PathnameState>, { name, transform }: PathSegment) => {
+  return PATH_SEGMENTS.reduce((acc: Partial<PathState>, { name, transform }: PathSegment) => {
     let value: string | undefined = undefined;
     if (name in matchResults) {
       value = matchResults[name];
     }
     if (!value) {
       // fall back to default value if var not present in
-      value = getDefaultFromSearchParams(name, searchParams);
+      value = '';
     }
-    if (value) {
+    if (typeof value === 'string') {
       acc[name] = transform ? transform(value) : value;
     }
     return acc;
-  }, {}) as PathnameState;
+  }, {}) as PathState;
 }
 
-export const parseHref = (href: string, searchParams: Record<string, string>): NavigationState => {
+export const parseHref = (href: string): NavigationState => {
   const parsedUrl = new URL(href);
-  const pathnameState = parsePath(parsedUrl.pathname, searchParams);
+  const pathnameState = parsePath(parsedUrl.pathname);
   return {
     ...pathnameState,
     search: parsedUrl.search,
@@ -97,9 +92,9 @@ export const constructUrl = (navigationState: NavigationState): string => {
   const searchParams = getSearchParams();
   const path = PATH_SEGMENTS.map(({ name }) => {
     let value = navigationState[name];
-    if (!value) {
-      value = getDefaultFromSearchParams(name, searchParams);
-    }
+    // if (!value) {
+    //  value = getDefaultFromSearchParams(name, searchParams);
+    // }
     return stripSlashPrefix(value ?? '');
   }).join('/');
   const host = getOuterHostname()
