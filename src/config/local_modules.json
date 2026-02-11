@@ -16,6 +16,7 @@
         "hooks.js": "/tinkerable-internal/hooks.js",
         "index.js": "/tinkerable-internal/index.js",
         "moduleCache.js": "/tinkerable-internal/moduleCache.js",
+        "pathUtils.js": "/tinkerable-internal/pathUtils.js",
         "routing.js": "/tinkerable-internal/routing.js",
         "sandboxTypes.js": "/tinkerable-internal/sandboxTypes.js",
         "sandboxUtils.js": "/tinkerable-internal/sandboxUtils.js",

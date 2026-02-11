@@ -1,8 +1,8 @@
-import { ReactNode, Suspense, use, useCallback } from 'react';
+import { ReactNode, Suspense, use, useCallback, useMemo } from 'react';
 
 import { defaultLoadingComponent as LoadingComponent } from './defaults';
 import { ModuleCacheContext } from '../moduleCache';
-import { navigate } from '../routing';
+import { FILES_PREFIX, navigate } from '../routing';
 import { NavigationState, TinkerableContext } from '../TinkerableContext';
 import { constructUrl, isAbsolutePath, isInternalHref, parseTarget } from '../urlUtils';
 import { RenderExportedComponentContext } from './Include';
@@ -40,7 +40,7 @@ export const RelativeInternalLinkHelper = ({
   pathPromise: Promise<string>;
 }) => {
   const resolvedPath = use(pathPromise);
-  const outerLink = constructUrl({ ...navigationState, sandboxPath: resolvedPath });
+  const outerLink = constructUrl({ ...navigationState, sandboxPath: `${FILES_PREFIX}${resolvedPath}` });
   return (
     <BasicInternalLink {...props} href={outerLink}>
       {children}
@@ -63,7 +63,7 @@ export const RelativeInternalLink = ({
     throw new Error('renderContext and moduleCacheContext must be defined')!;
   }
   const mod = renderContext.evaluationContext;
-  const pathPromise = moduleCacheContext.resolveModuleName(navigationState.sandboxPath, mod);
+  const pathPromise = useMemo(() => moduleCacheContext.resolveModuleName(navigationState.sandboxPath, mod), [navigationState]);
   return (
     <Suspense fallback={<LoadingComponent />}>
       <RelativeInternalLinkHelper props={props} navigationState={navigationState} pathPromise={pathPromise}>
@@ -90,6 +90,8 @@ export const InternalLink = ({
       </RelativeInternalLink>
     );
   }
+  // add FILES_PREFIX to the path
+  nextNavigationState.sandboxPath = `${FILES_PREFIX}${nextNavigationState.sandboxPath}`;
   const outerLink = constructUrl(nextNavigationState);
   return (
     <BasicInternalLink href={outerLink} {...props}>

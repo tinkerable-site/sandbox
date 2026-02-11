@@ -5,7 +5,7 @@ import { DEFAULT_MDX_COMPONENTS } from './components/MDXComponents';
 import { getInitialContext, updateContext } from './contextUtils';
 import { MDXProvider } from './MDXProvider';
 import { ModuleCache, ModuleCacheContextProvider } from './moduleCache';
-import { Router } from './routing';
+import { FILES_PREFIX, Router } from './routing';
 import type { RoutingSpec } from './RoutingSpec';
 import { addListener } from './sandboxUtils';
 import { TinkerableContext, TinkerableState } from './TinkerableContext';
@@ -73,10 +73,13 @@ export const TinkerableApp = ({ routingSpec }: { routingSpec: RoutingSpec }) => 
   );
 };
 
+// from: https://stackoverflow.com/a/63838890
+const escapeForRegexp = (str: string) => str.replace(/[.*+\-?^${}()|[\]\\]/g, '\\$&');
+
 export const DEFAULT_ROUTING_SPEC: RoutingSpec = {
   routes: [
     {name: 'MainContent', pattern: /^\/$/, reactNode: <MainContent />},
-    {name: 'FileRouter', pattern: /^\/files(?<filename>\/.+)$/, reactNode: <FileRouter />},
+    {name: 'FileRouter', pattern: new RegExp(`^${escapeForRegexp(FILES_PREFIX)}(?<filename>\/.+)$`), reactNode: <FileRouter />},
     {name: 'ErrorNotFound', pattern: /^(?<path>.+)$/, reactNode: <ErrorNotFound />},
   ]
 };

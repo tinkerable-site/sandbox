@@ -1,6 +1,5 @@
 import { NavigationState, PathState } from "./TinkerableContext";
 
-
 export const getOuterHostname = () => Array.from(window.location.ancestorOrigins)[0];
 
 export const getSearchParams = (search?: string): Record<string, string> => Object.fromEntries(
@@ -89,21 +88,17 @@ export const parseHref = (href: string): NavigationState => {
 const stripSlashPrefix = (s: string): string => s.startsWith('/') ? s.substring(1) : s;
 
 export const constructUrl = (navigationState: NavigationState): string => {
-  const searchParams = getSearchParams();
   const path = PATH_SEGMENTS.map(({ name }) => {
     let value = navigationState[name];
-    // if (!value) {
-    //  value = getDefaultFromSearchParams(name, searchParams);
-    // }
     return stripSlashPrefix(value ?? '');
   }).join('/');
   const host = getOuterHostname()
   let url = `${host}/${path}`
   if (navigationState.search) {
-    url += navigationState.search
+    url += '?' + navigationState.search
   }
   if (navigationState.hash) {
-    url += navigationState.hash
+    url += '#' + navigationState.hash
   }
   return url;
 }

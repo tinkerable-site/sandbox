@@ -1,8 +1,8 @@
 import { Suspense, use, useMemo } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { FILES_PREFIX, navigate, useTinkerableLink } from '../routing';
 
-import { ModuleCacheContext } from '../moduleCache';
 import { defaultErrorComponent, defaultLoadingComponent } from './defaults';
-import { Include } from './Include';
 
 const directories = ['/', '/src/'];
 const basenames = ['App', 'landing', 'main', 'README'];
@@ -18,13 +18,15 @@ const fileExists = async (path: string): Promise<[string, boolean]> => {
   return [path, exists];
 };
 
+export const MainContentRedirect = ({filename}:{filename:string}) => {
+  const url = useTinkerableLink(filename);
+  navigate(url);
+  return <>Redirecting to {filename}</>;
+}
+
 export const MainContentInner = ({
-  LoadingComponent = defaultLoadingComponent,
-  ErrorComponent = defaultErrorComponent,
   candidatesExistPromise,
 }: {
-  LoadingComponent?: typeof defaultLoadingComponent;
-  ErrorComponent?: typeof defaultErrorComponent;
   candidatesExistPromise: Promise<[string, boolean][]>;
 }) => {
   const candidatesExist = use(candidatesExistPromise);
@@ -33,9 +35,7 @@ export const MainContentInner = ({
     // todo: show file list
     throw new Error(`No main content file present`);
   }
-
-  // @ts-ignore
-  return <Include ErrorComponent={ErrorComponent} LoadingComponent={LoadingComponent} filename={filename} baseModule={module} />;
+  return <MainContentRedirect filename={FILES_PREFIX + filename}/>;
 };
 
 export const MainContent = ({
@@ -45,12 +45,13 @@ export const MainContent = ({
   LoadingComponent?: typeof defaultLoadingComponent;
   ErrorComponent?: typeof defaultErrorComponent;
 } = {}) => {
-  const moduleCache = use(ModuleCacheContext);
   // TODO: when to invalidate?
   const candidatesExistPromise = useMemo(() => Promise.all(candidates.map(fileExists)), []);
   return (
-    <Suspense fallback={<LoadingComponent />}>
-      <MainContentInner LoadingComponent={LoadingComponent} ErrorComponent={ErrorComponent} candidatesExistPromise={candidatesExistPromise} />
-    </Suspense>
+    <ErrorBoundary fallbackRender={ErrorComponent}>
+      <Suspense fallback={<LoadingComponent />}>
+        <MainContentInner candidatesExistPromise={candidatesExistPromise} />
+      </Suspense>
+    </ErrorBoundary>
   );
 };

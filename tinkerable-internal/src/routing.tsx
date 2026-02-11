@@ -1,12 +1,27 @@
-import { useContext } from 'react';
+import { use, useContext } from 'react';
 
 import { sendMessage } from './sandboxUtils';
 import { NavigationState, TinkerableContext } from './TinkerableContext';
 import { RoutingRule, RoutingSpec } from './RoutingSpec';
+import { constructUrl, isAbsolutePath, parseTarget } from './urlUtils';
+import { joinPaths } from './pathUtils';
+
+export const FILES_PREFIX = '/files';
 
 export type AppliedRoutingRule = {
   routingRule: RoutingRule,
   pathParameters?: Record<string, string>;
+}
+
+export const useTinkerableLink = (newSandboxLocation: string) => {
+  const { navigation } = use(TinkerableContext);
+  let newNavigationState = parseTarget(newSandboxLocation, navigation);
+  if (!isAbsolutePath(newSandboxLocation)) {
+    newNavigationState.sandboxPath = joinPaths(navigation.sandboxPath, newSandboxLocation)
+  } else {
+    newNavigationState.sandboxPath = newSandboxLocation
+  }
+  return constructUrl(newNavigationState);
 }
 
 export const applyRoutingRule = (routingSpec:RoutingSpec, navigationState: NavigationState): AppliedRoutingRule | undefined => {
