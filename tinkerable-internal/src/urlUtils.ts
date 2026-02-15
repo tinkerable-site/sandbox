@@ -1,6 +1,12 @@
+import { joinPaths } from "./pathUtils";
 import { NavigationState, PathState } from "./TinkerableContext";
 
-export const getOuterHostname = () => Array.from(window.location.ancestorOrigins)[0];
+export const FILES_PREFIX = '/files';
+
+export const getOuterHostname = (outerHref:string) => {
+  const url = new URL(outerHref);
+  return `${url.protocol}//${url.hostname}`;
+}
 
 export const getSearchParams = (search?: string): Record<string, string> => Object.fromEntries(
   [...(new URLSearchParams(search ?? window.location.search).entries())]);
@@ -29,13 +35,39 @@ export const maybeParseUrl = (str: string): URL | null => {
   }
 }
 
-export const isAbsolutePath = (path: string) => path.startsWith('/');
+export const isAbsolutePath = (sandboxPath: string) => sandboxPath.startsWith('/');
 
-export const isInternalHref = (target: string) => {
+export const repositoryPrefixURL = (outerHref:string, navigationState: NavigationState) => constructUrl(outerHref, {
+      ...navigationState,
+      sandboxPath: ''
+    });
+
+export const constructOuterUrl = (previousOuterHref:string, sandboxTarget:string, navigationState: NavigationState, addFilesPrefix=true):string => {
+  if (isAbsolutePath(sandboxTarget)) {
+    return constructUrl(
+      previousOuterHref,
+      {
+        ...navigationState,
+        sandboxPath: addFilesPrefix ? joinPaths(FILES_PREFIX, sandboxTarget) : sandboxTarget
+      })
+  }
+  return (
+    new URL(
+      sandboxTarget,
+      constructUrl(
+        previousOuterHref,
+        navigationState
+      )
+    )
+  ).toString();
+}
+
+export const isInternalHref = (outerHref:string, target: string, navigationState: NavigationState) => {
   const parsedUrl = maybeParseUrl(target);
   if (parsedUrl) {
-    return target.startsWith(getOuterHostname());
+    return target.startsWith(repositoryPrefixURL(outerHref, navigationState));
   }
+  // if target is not a valid URL, then assume it's relative.
   return true;
 }
 
@@ -80,19 +112,19 @@ export const parseHref = (href: string): NavigationState => {
   const pathnameState = parsePath(parsedUrl.pathname);
   return {
     ...pathnameState,
-    search: parsedUrl.search,
-    hash: parsedUrl.hash,
+    search: parsedUrl.search.substring(1),
+    hash: parsedUrl.hash.substring(1),
   } as NavigationState
 }
 
 const stripSlashPrefix = (s: string): string => s.startsWith('/') ? s.substring(1) : s;
 
-export const constructUrl = (navigationState: NavigationState): string => {
+export const constructUrl = (outerHref:string, navigationState: NavigationState): string => {
   const path = PATH_SEGMENTS.map(({ name }) => {
     let value = navigationState[name];
     return stripSlashPrefix(value ?? '');
   }).join('/');
-  const host = getOuterHostname()
+  const host = getOuterHostname(outerHref);
   let url = `${host}/${path}`
   if (navigationState.search) {
     url += '?' + navigationState.search

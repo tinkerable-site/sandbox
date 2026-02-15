@@ -21,7 +21,7 @@ export type NavigationState = PathState & {
 
 export type TinkerableState = {
   outerHref: string,
-  navigation: NavigationState,
+  navigationState: NavigationState,
   routingSpec: RoutingSpec,
   filesMetadata: FilesMetadata;
 }

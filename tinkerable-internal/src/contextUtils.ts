@@ -15,7 +15,7 @@ export const getContextFromUrl = (routingSpec: RoutingSpec, outerHref: string, f
     filesMetadata: filesMetadata ?? {},
     routingSpec,
     outerHref,
-    navigation: {
+    navigationState: {
       ...navigationState,
       ...appliedRoutingRule
     }

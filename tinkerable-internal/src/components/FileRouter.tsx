@@ -12,7 +12,7 @@ export const FileRouter: FC = ({
   LoadingComponent?: typeof defaultLoadingComponent;
   ErrorComponent?: typeof defaultErrorComponent;
 } = {}) => {
-  const { navigation: { pathParameters, sandboxPath } } = useContext(TinkerableContext);
+  const { navigationState: { pathParameters, sandboxPath } } = useContext(TinkerableContext);
   const filename = pathParameters?.filename;
   if (!filename) {
     return <ErrorComponent error={new Error(`No filename could be extracted from ${sandboxPath}`)} resetErrorBoundary={() => {}}/>;

@@ -1,6 +1,7 @@
 import { Suspense, use, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { FILES_PREFIX, navigate, useTinkerableLink } from '../routing';
+import { navigate, useTinkerableLink } from '../routing';
+import { FILES_PREFIX } from '../urlUtils';
 
 import { defaultErrorComponent, defaultLoadingComponent } from './defaults';
 

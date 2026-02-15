@@ -6,22 +6,20 @@ import { RoutingRule, RoutingSpec } from './RoutingSpec';
 import { constructUrl, isAbsolutePath, parseTarget } from './urlUtils';
 import { joinPaths } from './pathUtils';
 
-export const FILES_PREFIX = '/files';
-
 export type AppliedRoutingRule = {
   routingRule: RoutingRule,
   pathParameters?: Record<string, string>;
 }
 
 export const useTinkerableLink = (newSandboxLocation: string) => {
-  const { navigation } = use(TinkerableContext);
+  const { outerHref, navigationState: navigation } = use(TinkerableContext);
   let newNavigationState = parseTarget(newSandboxLocation, navigation);
   if (!isAbsolutePath(newSandboxLocation)) {
     newNavigationState.sandboxPath = joinPaths(navigation.sandboxPath, newSandboxLocation)
   } else {
     newNavigationState.sandboxPath = newSandboxLocation
   }
-  return constructUrl(newNavigationState);
+  return constructUrl(outerHref, newNavigationState);
 }
 
 export const applyRoutingRule = (routingSpec:RoutingSpec, navigationState: NavigationState): AppliedRoutingRule | undefined => {
@@ -46,10 +44,10 @@ export const applyRoutingRule = (routingSpec:RoutingSpec, navigationState: Navig
 
 export const Router = () => {
   const context = useContext(TinkerableContext);
-  const {navigation: {routingRule}} = context;
+  const {navigationState: {routingRule}} = context;
   if (!routingRule) {
     // TODO: better error
-    throw new Error(`No route registered for path ${context.navigation.sandboxPath}!`);
+    throw new Error(`No route registered for path ${context.navigationState.sandboxPath}!`);
   }
 
   return routingRule.reactNode;
