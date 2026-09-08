@@ -22,7 +22,7 @@ export function handleEvaluate(command: string): { error: boolean; result: any }
         const wrapped = `(${command})`;
         // `new Function` is used to validate Javascript syntax
         // eslint-disable-next-line
-        const validate = new Function(wrapped);
+        new Function(wrapped);
         command = wrapped;
       } catch (e) {
         // We shouldn't wrap the expression

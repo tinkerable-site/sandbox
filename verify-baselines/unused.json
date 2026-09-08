@@ -7,6 +7,7 @@
   "src/bundler/bundler.ts:UNSUPPORTED_BUILTIN_MODULE_PATH",
   "src/bundler/module-registry/build-dep.ts:isBuildDep",
   "src/bundler/module-registry/bundledPackages.ts:BUNDLED_PACKAGES_DIR",
+  "src/bundler/presets/solid/SolidPreset.ts:(file)",
   "src/bundler/testHarness/fixtures/sqljs/sql-wasm.js:(file)",
   "src/bundler/transforms/asset/mime.ts:ASSET_MIME_TYPES",
   "src/bundler/transforms/babel/walker/traverse-all.ts:(file)",

@@ -842,7 +842,8 @@ export class Bundler {
     if (manifest.length !== 1) {
       throw Error('addPreloadedModule did not find manifest for ' + moduleName);
     }
-    const parsedPackageJSON: any = JSON.parse(manifest[0][1]);
+    // The parse is the validation: a malformed manifest throws before any file is written.
+    JSON.parse(manifest[0][1]);
     for (let [filepath, contents] of files) {
       await this.fs.writeFile(filepath, contents);
       if (filepath.endsWith('.js')) {

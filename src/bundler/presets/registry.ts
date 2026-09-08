@@ -1,11 +1,10 @@
 import * as logger from '../../utils/logger';
 import { Preset } from './Preset';
 import { ReactPreset } from './react/ReactPreset';
-// DEAD-CANDIDATE(2026-06): SolidPreset is inherited upstream (Sandpack) surface;
-// its registration below is commented out and immediately.run is React-only, so it
-// is unreachable on any live path (getPreset falls back to ReactPreset). Kept, not
-// removed — see DEPRECATION_CANDIDATES.md.
-import { SolidPreset } from './solid/SolidPreset';
+// DEAD-CANDIDATE(2026-06): the Solid preset is inherited upstream (Sandpack) surface
+// and unreachable on any live path (getPreset falls back to ReactPreset). Its import
+// was removed under R3-573 (noUnusedLocals); the file, deps and fixture remain
+// ledgered in DEPRECATION_CANDIDATES.md Pass A.
 
 const PRESET_MAP: Map<string, Preset> = new Map([
   ['create-react-app', new ReactPreset()],
