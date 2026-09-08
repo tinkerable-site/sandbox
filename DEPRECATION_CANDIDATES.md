@@ -27,16 +27,18 @@ adopted. This file catalogues that surface.
 ### Solid framework preset (`SolidPreset` + its deps)
 
 - **Path(s):**
-  - `src/bundler/presets/solid/SolidPreset.ts` (whole file; class declared line 9)
-  - `src/bundler/presets/registry.ts:4` (import) and `:8` (commented-out registration `// ['solid', new SolidPreset()]`)
-  - `package.json` deps `babel-preset-solid` (line 71), `solid-refresh` (line 84)
+  - `src/bundler/presets/solid/SolidPreset.ts` (whole file; class declared line 14, verified on 2026-09-08)
+  - `registry.ts` import: REMOVED under R3-573 (`noUnusedLocals`); the commented-out
+    registration `// ['solid', new SolidPreset()]` remains, so the remaining Pass A scope is
+    the preset file itself, the `babel-preset-solid` + `solid-refresh` deps, and the fixture
+  - `package.json` deps `babel-preset-solid` (line 90), `solid-refresh` (line 102), verified on 2026-09-08
   - `src/resolver/fixture/node_modules/solid-js/` (test fixture only)
 - **What it is / upstream origin:** SolidJS support inherited from upstream Sandpack,
   which ships presets for multiple frameworks. immediately.run is **React-only** (the app
   CLAUDE.md design system + `ReactPreset` is the only live preset).
-- **Q1 reachable:** **no** — `getPreset()` (`registry.ts:11`) only instantiates entries in
-  `PRESET_MAP`; the `'solid'` entry is **commented out**, and any unknown preset name
-  falls back to `new ReactPreset()` (`registry.ts:14-15`). `SolidPreset` is constructed on
+- **Q1 reachable:** **no** — `getPreset()` (`registry.ts:39`, verified 2026-09-08) only instantiates
+  entries in `PRESET_MAP`; the `'solid'` entry is **commented out**, and any unknown preset name
+  falls back to `new ReactPreset()` (`registry.ts:48-49`). `SolidPreset` is constructed on
   no live path from `src/index.ts`; reaching it requires editing source.
 - **Q2 spec-claimed:** **no** — grep of `/home/user/docs/specs/` finds no spec requiring
   Solid; immediately.run targets React.

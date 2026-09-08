@@ -1,7 +1,6 @@
 import { configure, fs, mount, umount, resolveMountConfig, InMemory, bindContext } from '@zenfs/core';
 
 import { mountWatchRelay, withMountWatchRelay, relayEventFor, joinMountPath } from './mountWatchEvents';
-import type { MountChange } from '../protocol/fsChange';
 
 // R3-409 — the receiving half of the mount-anchored `fs-change` relay: a space
 // mount's server-side changes (another tab's or member's writes) must surface

@@ -9,7 +9,6 @@ import { REQUEST_CATALOG_MESSAGE } from './catalog/catalogState';
 import { EditorContextService } from './editor/EditorContextService';
 import { REQUEST_EDITOR_CONTEXT_MESSAGE } from './editor/editorContextState';
 import { ErrorRecord, listenToRuntimeErrors } from './error-listener';
-import { BundlerError } from './errors/BundlerError';
 import { CompilationError } from './errors/CompilationError';
 import { EvaluationError } from './errors/positionFromStack';
 import { errorMessage } from './errors/util';

@@ -37,7 +37,7 @@ class EvaluationContext {
     const allDependencies = [...moduleToEvaluate.dependencyMap.values()];
     // wait for all deps to be compiled before evaluating the module to ensure correct execution
     await this.evaluation.module.bundler.transformationQueue.onIdle();
-    const evaluatedDeps = await Promise.all(
+    await Promise.all(
       allDependencies
         .map((moduleName) => this.evaluation.module.bundler.modules.get(moduleName))
         .filter((mod) => mod && mod.compiled === null)

@@ -13,6 +13,7 @@
     "moduleResolution": "bundler",
     "downlevelIteration": true,
     "strictNullChecks": true,
+    "noUnusedLocals": true,
     "skipLibCheck": true
   },
   "include": ["src"],

@@ -23,7 +23,7 @@ import { Bundler } from '../bundler';
 import { Module } from '../module/Module';
 import { scanCjsModule } from '../transforms/raw-cjs/scan';
 import { RawCjsTransformer } from '../transforms/raw-cjs';
-import { createBundlerHarness, type BundlerHarness } from './bundlerHarness';
+import { createBundlerHarness } from './bundlerHarness';
 
 // ---------------------------------------------------------------------------
 // 1. BigInt literals — the chess.js shape (Zobrist hashing), un-vendored.
