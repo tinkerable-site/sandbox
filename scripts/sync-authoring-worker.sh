@@ -24,7 +24,10 @@ fi
 # the entry (or Parcel stopped splitting) — syncing that would silently put the
 # ~10 MB monolith back under /authoring-worker/, where `format` pays for the
 # TypeScript compiler again. Fail the sync instead.
-entry_bytes=$(stat -c%s "$SRC/authoring-worker.js")
+# `wc -c` rather than `stat`: the size flag is spelled -c%s on GNU coreutils and
+# -f%z on BSD/macOS, so `stat` breaks the build on whichever host the script was
+# not written on. `wc -c < file` is POSIX and identical on both.
+entry_bytes=$(wc -c < "$SRC/authoring-worker.js" | tr -d ' ')
 chunks=$(ls "$SRC" | grep -cE '^[a-z-]+\.[0-9a-f]+\.js$' || true)
 refs=$(grep -oE '(format|typecheck|lint|worker-lib-host|worker-lint-host)\.[0-9a-f]+\.js' "$SRC/authoring-worker.js" | sort -u | wc -l | tr -d ' ')
 if [ "$entry_bytes" -gt 100000 ]; then
