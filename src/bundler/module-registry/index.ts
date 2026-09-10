@@ -10,6 +10,7 @@ import { filterBuildDeps } from './build-dep';
 import { depMapsEqual, locksetClosureValid, LocksetSection } from './lockset';
 import { ICDNModule, ICDNModuleFile, IResolvedDependency, fetchManifest, fetchModule } from './module-cdn';
 import { bundledIndexPath, bundledPackagePath, decodeBundledModule, parseBundledIndex } from './bundledPackages';
+import { SELF_HOST_BASES } from '../moduleOrigins';
 import {
   EsmFallbackFetcher,
   esmFallbackEntryUrl,
@@ -182,10 +183,18 @@ export class ModuleRegistry {
   // offline) surfaces as a clear error naming the package — never a silent
   // undefined import.
   private async _fetchEsmFallbackModule(name: string, range: string): Promise<NodeModule> {
-    // Externalize every already-resolved dep (excluding this package) so esm.sh
-    // emits bare imports the bundler resolves to the SHARED instances (esp.
-    // react/react-dom) instead of bundling duplicates — see esm-fallback.ts.
-    const externals = [...new Set(this.manifest.map((d) => d.n))].filter((n) => n !== name);
+    // Externalize every dependency the bundler can resolve by other means —
+    // the CDN-resolved manifest deps and every self-hosted module (the SDK, via
+    // `SELF_HOST_BASES`) — so esm.sh emits bare imports the bundler resolves to
+    // the shared instances (esp. react/react-dom/sdk) instead of bundling
+    // duplicates — see esm-fallback.ts. The self-hosted names are the piece that
+    // kept the fallback inert for first-party packages: the SDK is deliberately
+    // excluded from CDN resolution (it lags npm), so it never appears in the
+    // manifest, and esm.sh was bundling its own SDK chunk — which the
+    // single-module fallback then refused (R3-566).
+    const externals = [...new Set([...this.manifest.map((d) => d.n), ...Object.keys(SELF_HOST_BASES)])].filter(
+      (n) => n !== name,
+    );
     const entryUrl = esmFallbackEntryUrl(name, range, externals);
 
     let source: string;
