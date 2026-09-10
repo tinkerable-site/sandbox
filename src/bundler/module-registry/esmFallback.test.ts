@@ -146,6 +146,37 @@ describe('ModuleRegistry esm.sh fallback (transpile-through)', () => {
     );
   });
 
+  it('externalizes self-hosted modules (the SDK), so a first-party SDK-importing package loads (R3-566)', async () => {
+    // esm.sh source for a first-party package that imports the SDK's platformLink —
+    // the exact shape the 2026-09-08 outage hit (omnibox -> @immediately-run/sdk).
+    const OMNIBOX_MJS = [
+      'import { link } from "@immediately-run/sdk/platformLink";',
+      'import { createElement } from "react";',
+      'export const Cta = (p) => createElement("a", p);',
+    ].join('\n');
+    const fetcher = jest.fn<Promise<string>, [string]>().mockResolvedValue(OMNIBOX_MJS);
+    const r = registry(fetcher);
+
+    // omnibox is absent from REACT_RESOLVED (the CDN "dropped" it), so it falls back.
+    await r.fetchManifest({ '@immediately-run/omnibox': '^0.3.0', react: '^19.2.5' });
+    await r.preloadModules();
+
+    // The SDK is externalized in the entry URL even though it is excluded from CDN
+    // resolution and so never appears in the manifest. Reverting the source fix
+    // (dropping SELF_HOST_BASES from the externals) makes this assertion red.
+    const url = fetcher.mock.calls[0][0];
+    expect(url).toContain('https://esm.sh/@immediately-run/omnibox@^0.3.0');
+    expect(url).toMatch(/external=[^&]*@immediately-run\/sdk/);
+
+    // The transpiled module references the SDK as a BARE require, not an
+    // esm.sh-internal chunk (which the single-module fallback would refuse).
+    const synthetic = r.modules.get('@immediately-run/omnibox')!;
+    const index = synthetic.files['index.js'] as ICDNModuleFile;
+    expect(index.d).toContain('@immediately-run/sdk/platformLink');
+    expect(index.c).toMatch(/require\(["']@immediately-run\/sdk\/platformLink["']\)/);
+    expect(index.c).not.toMatch(/esm\.sh\/.*sdk/i);
+  });
+
   it('with the fallback disabled, a dropped package fails fast via the resolution guard', async () => {
     const r = registry(null);
     await expect(r.fetchManifest({ ...DEPS })).rejects.toThrow(/Could not resolve.*lucide-react@\^1\.21\.0/);
