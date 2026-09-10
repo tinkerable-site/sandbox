@@ -189,7 +189,7 @@ export class ModuleRegistry {
     // the SHARED instances (esp. react/react-dom/sdk) instead of bundling
     // duplicates — see esm-fallback.ts. The self-hosted names are the piece that
     // kept the fallback inert for first-party packages: the SDK is deliberately
-    // EXCLUDED from CDN resolution (it lags npm), so it never appears in the
+    // excluded from CDN resolution (it lags npm), so it never appears in the
     // manifest, and esm.sh was bundling its own SDK chunk — which the
     // single-module fallback then refused (R3-566).
     const externals = [...new Set([...this.manifest.map((d) => d.n), ...Object.keys(SELF_HOST_BASES)])].filter(

@@ -1,17 +1,11 @@
 /**
  * @jest-environment jsdom
  *
- * esm.sh fallback (transpile-through, shared React) for packages the primary CDN
- * drops — the real lucide-react@^1.21.0 repro. The dropped package's esm.sh source
- * is fetched with deps externalized and transpiled through the bundler's chain, so
- * its `require("react")` binds to the APP's React (no dual-React render crash).
- * These tests stub the network boundary (jsdom can't fetch esm.sh) and run the
- * real transpile, verifying the wiring end to end.
- * (jsdom: importing ModuleRegistry transitively loads the evaluation runtime,
- * which references `window`/`self` at module scope.)
+ * esm.sh fallback source helpers (esm-fallback.ts): entry-URL construction,
+ * re-export-stub following, specifier classification, and module synthesis.
+ * The ModuleRegistry wiring that consumes these (index.ts) is tested in
+ * index.test.ts. (jsdom: esm-fallback transitively imports the registry.)
  */
-import { ModuleRegistry } from '.';
-import { Bundler } from '../bundler';
 import {
   EsmFallbackFetcher,
   esmFallbackEntryUrl,
@@ -21,24 +15,7 @@ import {
   parseReexportStub,
   synthesizeEsmFallbackModule,
 } from './esm-fallback';
-import { fetchManifest, fetchModule, ICDNModuleFile, IResolvedDependency } from './module-cdn';
-
-jest.mock('./module-cdn', () => ({
-  ...jest.requireActual('./module-cdn'),
-  fetchManifest: jest.fn(),
-  fetchModule: jest.fn(),
-}));
-
-const mockedFetchManifest = fetchManifest as jest.MockedFunction<typeof fetchManifest>;
-const mockedFetchModule = fetchModule as jest.MockedFunction<typeof fetchModule>;
-
-// Primary CDN resolves react/react-dom but drops lucide-react@^1.21.0.
-const REACT_RESOLVED: IResolvedDependency[] = [
-  { n: 'react', v: '19.3.0', d: 0 },
-  { n: 'react-dom', v: '19.3.0', d: 0 },
-  { n: 'scheduler', v: '0.28.0', d: 1 },
-];
-const DEPS = { 'lucide-react': '^1.21.0', react: '^19.2.5', 'react-dom': '^19.2.5' };
+import { ICDNModuleFile } from './module-cdn';
 
 // A stand-in for the esm.sh `.mjs`: bare `import ... from "react"` + real code, so
 // the transpile yields `require("react")` resolved by the bundler to the app React.
@@ -101,84 +78,5 @@ describe('synthesizeEsmFallbackModule', () => {
     const index = mod.f['index.js'] as ICDNModuleFile;
     expect(index.t).toBe(true);
     expect(index.d).toEqual(['react']);
-  });
-});
-
-describe('ModuleRegistry esm.sh fallback (transpile-through)', () => {
-  const registry = (fetcher: EsmFallbackFetcher | null) => new ModuleRegistry({} as Bundler, fetcher);
-
-  beforeEach(() => {
-    mockedFetchManifest.mockReset();
-    mockedFetchModule.mockReset();
-    mockedFetchManifest.mockImplementation(async () => REACT_RESOLVED.map((d) => ({ ...d }))); // lucide dropped
-    mockedFetchModule.mockResolvedValue({ f: {}, m: [] }); // react/react-dom stubs
-  });
-
-  it('externalizes react and bridges the package so require() resolves it (no second React)', async () => {
-    const fetcher = jest.fn<Promise<string>, [string]>().mockResolvedValue(LUCIDE_MJS);
-    const r = registry(fetcher);
-
-    await r.fetchManifest({ ...DEPS });
-    expect(r.manifest.map((d) => d.n)).toContain('lucide-react');
-    await r.preloadModules();
-
-    // Fetched from esm.sh with the resolved deps externalized.
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    const url = fetcher.mock.calls[0][0];
-    expect(url).toContain('https://esm.sh/lucide-react@^1.21.0');
-    expect(url).toMatch(/external=[^&]*react/);
-
-    // The synthetic package is transpiled CJS whose dep is react — so at eval the
-    // bundler resolves `react` to the app's shared instance (the dual-React fix).
-    const synthetic = r.modules.get('lucide-react')!;
-    const index = synthetic.files['index.js'] as ICDNModuleFile;
-    expect(index.c).toMatch(/require\(["']react["']\)/);
-    expect(index.c).not.toMatch(/import\s/); // ESM was lowered to CJS
-    expect(index.d).toContain('react');
-  });
-
-  it('surfaces a clear error (not a silent undefined) when esm.sh also fails', async () => {
-    const fetcher = jest.fn<Promise<string>, [string]>().mockRejectedValue(new Error('HTTP 404'));
-    const r = registry(fetcher);
-    await r.fetchManifest({ ...DEPS });
-    await expect(r.preloadModules()).rejects.toThrow(
-      /Could not resolve "lucide-react@\^1\.21\.0".*esm\.sh fallback.*404/,
-    );
-  });
-
-  it('externalizes self-hosted modules (the SDK), so a first-party SDK-importing package loads (R3-566)', async () => {
-    // esm.sh source for a first-party package that imports the SDK's platformLink —
-    // the exact shape the 2026-09-08 outage hit (omnibox -> @immediately-run/sdk).
-    const OMNIBOX_MJS = [
-      'import { link } from "@immediately-run/sdk/platformLink";',
-      'import { createElement } from "react";',
-      'export const Cta = (p) => createElement("a", p);',
-    ].join('\n');
-    const fetcher = jest.fn<Promise<string>, [string]>().mockResolvedValue(OMNIBOX_MJS);
-    const r = registry(fetcher);
-
-    // omnibox is absent from REACT_RESOLVED (the CDN "dropped" it), so it falls back.
-    await r.fetchManifest({ '@immediately-run/omnibox': '^0.3.0', react: '^19.2.5' });
-    await r.preloadModules();
-
-    // The SDK is externalized in the entry URL even though it is excluded from CDN
-    // resolution and so never appears in the manifest. Reverting the source fix
-    // (dropping SELF_HOST_BASES from the externals) makes this assertion red.
-    const url = fetcher.mock.calls[0][0];
-    expect(url).toContain('https://esm.sh/@immediately-run/omnibox@^0.3.0');
-    expect(url).toMatch(/external=[^&]*@immediately-run\/sdk/);
-
-    // The transpiled module references the SDK as a BARE require, not an
-    // esm.sh-internal chunk (which the single-module fallback would refuse).
-    const synthetic = r.modules.get('@immediately-run/omnibox')!;
-    const index = synthetic.files['index.js'] as ICDNModuleFile;
-    expect(index.d).toContain('@immediately-run/sdk/platformLink');
-    expect(index.c).toMatch(/require\(["']@immediately-run\/sdk\/platformLink["']\)/);
-    expect(index.c).not.toMatch(/esm\.sh\/.*sdk/i);
-  });
-
-  it('with the fallback disabled, a dropped package fails fast via the resolution guard', async () => {
-    const r = registry(null);
-    await expect(r.fetchManifest({ ...DEPS })).rejects.toThrow(/Could not resolve.*lucide-react@\^1\.21\.0/);
   });
 });
