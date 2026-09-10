@@ -1,10 +1,8 @@
 /**
- * @jest-environment jsdom
- *
  * esm.sh fallback source helpers (esm-fallback.ts): entry-URL construction,
  * re-export-stub following, specifier classification, and module synthesis.
  * The ModuleRegistry wiring that consumes these (index.ts) is tested in
- * index.test.ts. (jsdom: esm-fallback transitively imports the registry.)
+ * index.test.ts.
  */
 import {
   EsmFallbackFetcher,

@@ -184,9 +184,9 @@ export class ModuleRegistry {
   // undefined import.
   private async _fetchEsmFallbackModule(name: string, range: string): Promise<NodeModule> {
     // Externalize every dependency the bundler can resolve by other means —
-    // the CDN-resolved manifest deps AND every self-hosted module (the SDK, via
+    // the CDN-resolved manifest deps and every self-hosted module (the SDK, via
     // `SELF_HOST_BASES`) — so esm.sh emits bare imports the bundler resolves to
-    // the SHARED instances (esp. react/react-dom/sdk) instead of bundling
+    // the shared instances (esp. react/react-dom/sdk) instead of bundling
     // duplicates — see esm-fallback.ts. The self-hosted names are the piece that
     // kept the fallback inert for first-party packages: the SDK is deliberately
     // excluded from CDN resolution (it lags npm), so it never appears in the

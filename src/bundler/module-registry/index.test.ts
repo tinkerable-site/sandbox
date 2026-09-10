@@ -1,14 +1,10 @@
 /**
- * @jest-environment jsdom
- *
  * ModuleRegistry (index.ts) — the esm.sh fallback the registry wires for packages
  * the primary CDN drops. Exercises the real `_fetchEsmFallbackModule` seam: it
  * derives the `?external=` list from the CDN-resolved manifest plus the self-hosted
  * modules (`SELF_HOST_BASES`, today the SDK), then transpiles esm.sh source through
  * the bundler's chain so `require(...)` binds to the shared instances. The network
  * boundary is stubbed; the transpile and the chunk-detector run for real.
- * (jsdom: importing ModuleRegistry transitively loads the evaluation runtime,
- * which references `window`/`self` at module scope.)
  */
 import { ModuleRegistry } from '.';
 import { Bundler } from '../bundler';
